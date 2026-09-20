@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="376 109 467 381" width="467" height="381">
+  <defs>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1687F5"/>
+      <stop offset="100%" stop-color="#1769E8"/>
+    </linearGradient>
+    <linearGradient id="teal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#20C7A1"/>
+      <stop offset="100%" stop-color="#0FAE91"/>
+    </linearGradient>
+    <linearGradient id="violet" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#7650F5"/>
+      <stop offset="100%" stop-color="#5430DD"/>
+    </linearGradient>
+  </defs>
+
+  <!-- TripSplit symbol (extracted from tripsplit-logo.svg, no background/wordmark) -->
+  <g transform="translate(600 265)">
+    <!-- Three people / shared center -->
+    <circle cx="0" cy="-105" r="43" fill="url(#teal)"/>
+    <circle cx="-138" cy="-80" r="39" fill="url(#blue)"/>
+    <circle cx="138" cy="-80" r="39" fill="url(#violet)"/>
+
+    <!-- Center connecting person -->
+    <path d="M-108 -15 Q0 -78 108 -15 L0 63 Z" fill="url(#teal)"/>
+
+    <!-- Left split / person -->
+    <path d="M-216 -13
+             Q-184 -35 -151 -18
+             Q-111 2 -66 28
+             Q-12 58 -12 104
+             L-12 198
+             Q-12 217 -31 214
+             Q-75 208 -111 181
+             Q-139 160 -139 126
+             L-139 88
+             Q-139 65 -163 51
+             L-208 25
+             Q-235 9 -216 -13 Z"
+          fill="url(#blue)"/>
+
+    <!-- Right split / person -->
+    <path d="M216 -13
+             Q184 -35 151 -18
+             Q111 2 66 28
+             Q12 58 12 104
+             L12 198
+             Q12 217 31 214
+             Q75 208 111 181
+             Q139 160 139 126
+             L139 88
+             Q139 65 163 51
+             L208 25
+             Q235 9 216 -13 Z"
+          fill="url(#violet)"/>
+
+    <!-- Clean white split -->
+    <path d="M0 48 L0 204" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round"/>
+  </g>
+</svg>

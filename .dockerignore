@@ -1,0 +1,43 @@
+# Git / VCS
+.git
+.gitignore
+
+# Dart / Flutter build artifacts
+.dart_tool
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+coverage/
+*.log
+
+# Dependencies locked to the host
+pubspec.lock
+.pub-cache/
+
+# IDE
+.idea
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Android local state
+android/local.properties
+android/app/debug
+android/key.properties
+android/.gradle/
+android/**/*.jks
+android/**/*.keystore
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Testing / tooling
+test_screenshots/
+.tool/
+
+# Docker ephemeral
+docker/config/env.list

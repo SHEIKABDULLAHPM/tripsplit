@@ -1,0 +1,7 @@
+analyzer:
+  errors:
+    sort_constructors_first: ignore
+    prefer_const_constructors: ignore
+    unnecessary_lambdas: ignore
+    prefer_expression_function_bodies: ignore
+    omit_local_variable_types: ignore

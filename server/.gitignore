@@ -1,0 +1,9 @@
+# Local secrets (Razorpay keys, webhook secret, DATABASE_URL). Track the
+# template (`.env.example`), never the real file.
+.env
+.env.*
+!.env.example
+
+# Runtime funding ledger + WAL sidecar files.
+funding.sqlite3
+funding.sqlite3-*
