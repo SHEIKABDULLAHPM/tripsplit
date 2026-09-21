@@ -13,20 +13,25 @@ library;
 import 'dart:convert';
 
 /// The two funding plans a user can choose from.
+///
+/// The `wire` values are stable internal identifiers shared with the server;
+/// they do not reflect the current price and must not be renamed.
 enum FundingType {
   support49(
     wire: 'SUPPORT_49',
     displayName: 'Support Funding',
-    displayRupees: 49,
-    purpose: 'Support the ongoing maintenance and development of TripSplit.',
+    displayRupees: 19,
+    purpose:
+        'Help support the developer and the ongoing development of '
+        'TripSplit.',
   ),
   future199(
     wire: 'FUTURE_199',
     displayName: 'Future Funding',
-    displayRupees: 199,
+    displayRupees: 49,
     purpose:
-        'Support future development, infrastructure, and the continuing '
-        'evolution of TripSplit.',
+        'Support future live integrations, connection and tracking '
+        'features, and Play Store publishing and related costs.',
   );
 
   const FundingType({

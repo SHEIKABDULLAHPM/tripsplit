@@ -77,8 +77,9 @@ class TeamSettlementScreen extends ConsumerWidget {
                 // Use the same calculation engine as the balance screen.
                 // PaymentAllocator.groupOutlayByMember handles external
                 // amounts correctly.
-                final paymentsByExpense =
-                    PaymentAllocator.byExpense(tripView.payments);
+                final paymentsByExpense = PaymentAllocator.byExpense(
+                  tripView.payments,
+                );
                 final paidByMember = <int, int>{};
                 final shareByMember = <int, int>{};
 
@@ -146,7 +147,8 @@ class TeamSettlementScreen extends ConsumerWidget {
 
                 // Trip-level outstanding involving team members (accounts for
                 // settlements already made).
-                final teamRemaining = teamSettlementSuggestions.fold<int>(
+                final teamRemaining =
+                    teamSettlementSuggestions.fold<int>(
                       0,
                       (sum, s) => sum + s.minor,
                     ) +
@@ -205,14 +207,13 @@ class TeamSettlementScreen extends ConsumerWidget {
                               decoration: BoxDecoration(
                                 color: isFullyPaid
                                     ? theme.colorScheme.primaryContainer
-                                        .withAlpha(80)
+                                          .withAlpha(80)
                                     : theme.colorScheme.errorContainer
-                                        .withAlpha(80),
+                                          .withAlpha(80),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Column(
-                                crossAxisAlignment:
-                                    CrossAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
                                     children: [
@@ -328,8 +329,9 @@ class TeamSettlementScreen extends ConsumerWidget {
                           fromName: tripView
                               .memberById(suggestion.fromMemberId)
                               .name,
-                          toName:
-                              tripView.memberById(suggestion.toMemberId).name,
+                          toName: tripView
+                              .memberById(suggestion.toMemberId)
+                              .name,
                           minor: suggestion.minor,
                           theme: theme,
                         ),
@@ -341,8 +343,10 @@ class TeamSettlementScreen extends ConsumerWidget {
                           style: theme.textTheme.statLabel,
                         ),
                         const SizedBox(height: AppSpacing.sm),
-                        for (final suggestion
-                            in [...crossTeamSuggestions, ...incomingCrossTeam])
+                        for (final suggestion in [
+                          ...crossTeamSuggestions,
+                          ...incomingCrossTeam,
+                        ])
                           _SettlementSuggestionCard(
                             fromName: tripView
                                 .memberById(suggestion.fromMemberId)
@@ -442,7 +446,9 @@ class TeamSettlementScreen extends ConsumerWidget {
                   ),
                 ),
                 StatusChip(
-                  settlement.status == SettlementStatus.paid ? 'Paid' : 'Partial',
+                  settlement.status == SettlementStatus.paid
+                      ? 'Paid'
+                      : 'Partial',
                   tone: settlement.status == SettlementStatus.paid
                       ? StatusTone.success
                       : StatusTone.warning,
@@ -636,37 +642,34 @@ class _SettlementSuggestionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-        child: Card(
-          margin: EdgeInsets.zero,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Row(
-              children: [
-                MemberAvatar(fromName, radius: 14),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '$fromName → $toName',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 1),
-                      Text(
-                        'To $toName',
-                        style: theme.textTheme.captionMuted,
-                      ),
-                    ],
+    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+    child: Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          children: [
+            MemberAvatar(fromName, radius: 14),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$fromName → $toName',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                MoneyText(minor, style: theme.textTheme.titleBold),
-              ],
+                  const SizedBox(height: 1),
+                  Text('To $toName', style: theme.textTheme.captionMuted),
+                ],
+              ),
             ),
-          ),
+            MoneyText(minor, style: theme.textTheme.titleBold),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 }

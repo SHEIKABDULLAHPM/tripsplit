@@ -26,12 +26,12 @@ void main() {
       final actual = <String, String>{};
       for (final row in rows) {
         final name = row.read<String>('name');
-        final sql = row.read<String>('sql')!;
+        final sql = row.read<String>('sql');
         final table = row.read<String>('tbl_name');
         final columns = RegExp(
           r'\(([^)]+)\)',
         ).firstMatch(sql)!.group(1)!.replaceAll(' ', '');
-        actual['$name'] = '$table($columns)';
+        actual[name] = '$table($columns)';
       }
 
       final expected = <String, String>{

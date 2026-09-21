@@ -123,107 +123,120 @@ void main() {
 
     // ── Scenario 3: One member pays for himself and multiple members ─────
 
-    test('Scenario 3: One member pays for himself and multiple members',
-        () async {
-      final (tripId, ids) = await seedTripWithMembers(['A', 'B', 'C', 'D']);
+    test(
+      'Scenario 3: One member pays for himself and multiple members',
+      () async {
+        final (tripId, ids) = await seedTripWithMembers(['A', 'B', 'C', 'D']);
 
-      // A pays ₹400, split 4 ways (₹100 each).
-      await expenseRepository.createExpense(
-        tripId: tripId,
-        description: 'Dinner',
-        amountMinor: 400_00,
-        payerMemberId: ids[0],
-        participantMemberIds: ids,
-      );
+        // A pays ₹400, split 4 ways (₹100 each).
+        await expenseRepository.createExpense(
+          tripId: tripId,
+          description: 'Dinner',
+          amountMinor: 400_00,
+          payerMemberId: ids[0],
+          participantMemberIds: ids,
+        );
 
-      final payments = await loadPayments(tripId);
-      expect(payments, hasLength(1));
-      expect(payments.single.memberId, ids[0]);
-      expect(payments.single.amountMinor, 400_00);
+        final payments = await loadPayments(tripId);
+        expect(payments, hasLength(1));
+        expect(payments.single.memberId, ids[0]);
+        expect(payments.single.amountMinor, 400_00);
 
-      final shares = await expenseRepository.getSharesFor(1);
-      expect(shares, hasLength(4));
-      for (final share in shares) {
-        expect(share.shareMinor, 100_00);
-      }
-    });
+        final shares = await expenseRepository.getSharesFor(1);
+        expect(shares, hasLength(4));
+        for (final share in shares) {
+          expect(share.shareMinor, 100_00);
+        }
+      },
+    );
 
     // ── Scenario 4: One member pays for selected members from his team ──
 
-    test('Scenario 4: Cross-team payment — member pays on behalf of other team',
-        () async {
-      final (tripId, ids) = await seedTripWithMembers([
-        'Dhar', 'Gowtham', 'Sanu',
-      ]);
-      final (teamA, _) = await seedTeam(tripId, 'Team A', [ids[0], ids[1]]);
-      final (teamB, _) = await seedTeam(tripId, 'Team B', [ids[2]]);
+    test(
+      'Scenario 4: Cross-team payment — member pays on behalf of other team',
+      () async {
+        final (tripId, ids) = await seedTripWithMembers([
+          'Dhar',
+          'Gowtham',
+          'Sanu',
+        ]);
+        final (teamA, _) = await seedTeam(tripId, 'Team A', [ids[0], ids[1]]);
+        final (teamB, _) = await seedTeam(tripId, 'Team B', [ids[2]]);
 
-      // Common expense across both teams. Dhar (Team A) pays ₹300 for all 3.
-      await expenseRepository.createExpense(
-        tripId: tripId,
-        description: 'Hotel',
-        amountMinor: 300_00,
-        payerMemberId: ids[0],
-        scope: ExpenseScope.team,
-        teamIds: [teamA, teamB],
-        payerTeamId: teamA,
-        participantMemberIds: ids,
-      );
+        // Common expense across both teams. Dhar (Team A) pays ₹300 for all 3.
+        await expenseRepository.createExpense(
+          tripId: tripId,
+          description: 'Hotel',
+          amountMinor: 300_00,
+          payerMemberId: ids[0],
+          scope: ExpenseScope.team,
+          teamIds: [teamA, teamB],
+          payerTeamId: teamA,
+          participantMemberIds: ids,
+        );
 
-      final expense = (await expenseRepository.getByTrip(tripId)).single;
-      expect(expense.teamIds.toSet(), {teamA, teamB});
+        final expense = (await expenseRepository.getByTrip(tripId)).single;
+        expect(expense.teamIds.toSet(), {teamA, teamB});
 
-      final payments = await loadPayments(tripId);
-      expect(payments, hasLength(1));
-      expect(payments.single.memberId, ids[0]);
-      expect(payments.single.amountMinor, 300_00);
-      expect(payments.single.teamId, teamA);
+        final payments = await loadPayments(tripId);
+        expect(payments, hasLength(1));
+        expect(payments.single.memberId, ids[0]);
+        expect(payments.single.amountMinor, 300_00);
+        expect(payments.single.teamId, teamA);
 
-      final shares = await expenseRepository.getSharesFor(expense.id);
-      expect(shares, hasLength(3));
-      for (final share in shares) {
-        expect(share.shareMinor, 100_00);
-      }
-    });
+        final shares = await expenseRepository.getSharesFor(expense.id);
+        expect(shares, hasLength(3));
+        for (final share in shares) {
+          expect(share.shareMinor, 100_00);
+        }
+      },
+    );
 
     // ── Scenario 5: One member pays for relevant members across teams ────
 
-    test('Scenario 5: Cross-team payment — payer from Team A pays for Team B',
-        () async {
-      final (tripId, ids) = await seedTripWithMembers([
-        'Dhar', 'Gowtham', 'Sanu',
-      ]);
-      final (teamA, _) = await seedTeam(tripId, 'Team A', [ids[0], ids[1]]);
-      final (teamB, _) = await seedTeam(tripId, 'Team B', [ids[2]]);
+    test(
+      'Scenario 5: Cross-team payment — payer from Team A pays for Team B',
+      () async {
+        final (tripId, ids) = await seedTripWithMembers([
+          'Dhar',
+          'Gowtham',
+          'Sanu',
+        ]);
+        final (teamA, _) = await seedTeam(tripId, 'Team A', [ids[0], ids[1]]);
+        final (teamB, _) = await seedTeam(tripId, 'Team B', [ids[2]]);
 
-      // Dhar (Team A) pays for Team B's share. The payment is attributed to
-      // Team B even though Dhar is not in Team B.
-      await expenseRepository.createExpense(
-        tripId: tripId,
-        description: 'Transport',
-        amountMinor: 300_00,
-        payerMemberId: ids[0],
-        scope: ExpenseScope.team,
-        teamIds: [teamA, teamB],
-        payerTeamId: teamB,
-        participantMemberIds: ids,
-      );
+        // Dhar (Team A) pays for Team B's share. The payment is attributed to
+        // Team B even though Dhar is not in Team B.
+        await expenseRepository.createExpense(
+          tripId: tripId,
+          description: 'Transport',
+          amountMinor: 300_00,
+          payerMemberId: ids[0],
+          scope: ExpenseScope.team,
+          teamIds: [teamA, teamB],
+          payerTeamId: teamB,
+          participantMemberIds: ids,
+        );
 
-      final payments = await loadPayments(tripId);
-      expect(payments, hasLength(1));
-      expect(payments.single.memberId, ids[0]);
-      expect(payments.single.teamId, teamB);
+        final payments = await loadPayments(tripId);
+        expect(payments, hasLength(1));
+        expect(payments.single.memberId, ids[0]);
+        expect(payments.single.teamId, teamB);
 
-      // Dhar paid 300 for 3 participants → each owes 100.
-      final shares = await expenseRepository.getSharesFor(1);
-      expect(shares, hasLength(3));
-    });
+        // Dhar paid 300 for 3 participants → each owes 100.
+        final shares = await expenseRepository.getSharesFor(1);
+        expect(shares, hasLength(3));
+      },
+    );
 
     // ── Scenario 6: Multiple members pay the same common expense ─────────
 
     test('Scenario 6: Multiple members pay the same common expense', () async {
       final (tripId, ids) = await seedTripWithMembers([
-        'Dhar', 'Gowtham', 'Sanu', 'Mowli',
+        'Dhar',
+        'Gowtham',
+        'Sanu',
+        'Mowli',
       ]);
 
       // Dhar pays ₹600, Gowtham pays ₹400. Total ₹1000. 4 participants.
@@ -246,12 +259,10 @@ void main() {
       final payments = await loadPayments(tripId);
       expect(payments, hasLength(2));
 
-      final dharPay =
-          payments.firstWhere((p) => p.memberId == ids[0]);
+      final dharPay = payments.firstWhere((p) => p.memberId == ids[0]);
       expect(dharPay.amountMinor, 600_00);
 
-      final gowthamPay =
-          payments.firstWhere((p) => p.memberId == ids[1]);
+      final gowthamPay = payments.firstWhere((p) => p.memberId == ids[1]);
       expect(gowthamPay.amountMinor, 400_00);
 
       final totalPaid = payments.fold<int>(0, (s, p) => s + p.amountMinor);
@@ -266,68 +277,78 @@ void main() {
 
     // ── Scenario 7: Team-level combined with individual payment ──────────
 
-    test('Scenario 7: Team-level payment combined with individual payment',
-        () async {
-      final (tripId, ids) = await seedTripWithMembers([
-        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
-      ]);
-      final (team1, _) =
-          await seedTeam(tripId, 'Team 1', ids.sublist(0, 5));
-      final (team2, _) =
-          await seedTeam(tripId, 'Team 2', ids.sublist(5));
+    test(
+      'Scenario 7: Team-level payment combined with individual payment',
+      () async {
+        final (tripId, ids) = await seedTripWithMembers([
+          'A',
+          'B',
+          'C',
+          'D',
+          'E',
+          'F',
+          'G',
+          'H',
+          'I',
+          'J',
+        ]);
+        final (team1, _) = await seedTeam(tripId, 'Team 1', ids.sublist(0, 5));
+        final (team2, _) = await seedTeam(tripId, 'Team 2', ids.sublist(5));
 
-      // ₹4000 across 10 members. Team 1 (A) pays ₹2500. Team 2 pays ₹1500.
-      await expenseRepository.createExpense(
-        tripId: tripId,
-        description: 'Booking',
-        amountMinor: 4000_00,
-        payerMemberId: ids[0],
-        scope: ExpenseScope.team,
-        teamIds: [team1, team2],
-        payerTeamId: team1,
-        participantMemberIds: ids,
-        otherPayers: [
-          ExpensePayment(
-            id: 0,
-            expenseId: 0,
-            memberId: ids[5],
-            amountMinor: 1500_00,
-            teamId: team2,
-          ),
-        ],
-      );
+        // ₹4000 across 10 members. Team 1 (A) pays ₹2500. Team 2 pays ₹1500.
+        await expenseRepository.createExpense(
+          tripId: tripId,
+          description: 'Booking',
+          amountMinor: 4000_00,
+          payerMemberId: ids[0],
+          scope: ExpenseScope.team,
+          teamIds: [team1, team2],
+          payerTeamId: team1,
+          participantMemberIds: ids,
+          otherPayers: [
+            ExpensePayment(
+              id: 0,
+              expenseId: 0,
+              memberId: ids[5],
+              amountMinor: 1500_00,
+              teamId: team2,
+            ),
+          ],
+        );
 
-      final payments = await loadPayments(tripId);
-      expect(payments, hasLength(2));
+        final payments = await loadPayments(tripId);
+        expect(payments, hasLength(2));
 
-      final aPayment = payments.firstWhere((p) => p.memberId == ids[0]);
-      expect(aPayment.amountMinor, 2500_00);
-      expect(aPayment.teamId, team1);
+        final aPayment = payments.firstWhere((p) => p.memberId == ids[0]);
+        expect(aPayment.amountMinor, 2500_00);
+        expect(aPayment.teamId, team1);
 
-      final fPayment = payments.firstWhere((p) => p.memberId == ids[5]);
-      expect(fPayment.amountMinor, 1500_00);
-      expect(fPayment.teamId, team2);
+        final fPayment = payments.firstWhere((p) => p.memberId == ids[5]);
+        expect(fPayment.amountMinor, 1500_00);
+        expect(fPayment.teamId, team2);
 
-      final totalPaid = payments.fold<int>(0, (s, p) => s + p.amountMinor);
-      expect(totalPaid, 4000_00);
+        final totalPaid = payments.fold<int>(0, (s, p) => s + p.amountMinor);
+        expect(totalPaid, 4000_00);
 
-      final shares = await expenseRepository.getSharesFor(1);
-      expect(shares, hasLength(10));
-      for (final share in shares) {
-        expect(share.shareMinor, 400_00);
-      }
+        final shares = await expenseRepository.getSharesFor(1);
+        expect(shares, hasLength(10));
+        for (final share in shares) {
+          expect(share.shareMinor, 400_00);
+        }
 
-      // No double-counting: net across all members must be zero.
-      final netByMember = <int, int>{};
-      for (final p in payments) {
-        netByMember[p.memberId] = p.amountMinor;
-      }
-      for (final s in shares) {
-        netByMember[s.memberId] = (netByMember[s.memberId] ?? 0) - s.shareMinor;
-      }
-      final totalNet = netByMember.values.fold<int>(0, (s, v) => s + v);
-      expect(totalNet, 0);
-    });
+        // No double-counting: net across all members must be zero.
+        final netByMember = <int, int>{};
+        for (final p in payments) {
+          netByMember[p.memberId] = p.amountMinor;
+        }
+        for (final s in shares) {
+          netByMember[s.memberId] =
+              (netByMember[s.memberId] ?? 0) - s.shareMinor;
+        }
+        final totalNet = netByMember.values.fold<int>(0, (s, v) => s + v);
+        expect(totalNet, 0);
+      },
+    );
 
     // ── Scenario 8: Partial payment ──────────────────────────────────────
 
@@ -481,11 +502,13 @@ void main() {
 
       // Verify settlement plan reflects this.
       final allExpenses = await expenseRepository.getByTrip(tripId);
-      final allShares = await expenseRepository.getSharesFor(allExpenses.single.id);
+      final allShares = await expenseRepository.getSharesFor(
+        allExpenses.single.id,
+      );
       final allPayments = await loadPayments(tripId);
-      final allSettlements = (await db.settlementDao.getByTrip(tripId))
-          .map((r) => r.toDomain())
-          .toList();
+      final allSettlements = (await db.settlementDao.getByTrip(
+        tripId,
+      )).map((r) => r.toDomain()).toList();
 
       final plan = SettlementCalculator.calculate(
         expenses: allExpenses,
@@ -500,132 +523,149 @@ void main() {
 
     // ── Scenario 12: Verify no amount is double-counted ──────────────────
 
-    test('Scenario 12: No double-counting across payments and shares',
-        () async {
-      final (tripId, ids) = await seedTripWithMembers([
-        'A', 'B', 'C', 'D', 'E',
-      ]);
+    test(
+      'Scenario 12: No double-counting across payments and shares',
+      () async {
+        final (tripId, ids) = await seedTripWithMembers([
+          'A',
+          'B',
+          'C',
+          'D',
+          'E',
+        ]);
 
-      // Create two expenses.
-      await expenseRepository.createExpense(
-        tripId: tripId,
-        description: 'Expense 1',
-        amountMinor: 500_00,
-        payerMemberId: ids[0],
-        participantMemberIds: ids,
-        otherPayers: [
-          ExpensePayment(
-            id: 0,
-            expenseId: 0,
-            memberId: ids[1],
-            amountMinor: 200_00,
-          ),
-        ],
-      );
+        // Create two expenses.
+        await expenseRepository.createExpense(
+          tripId: tripId,
+          description: 'Expense 1',
+          amountMinor: 500_00,
+          payerMemberId: ids[0],
+          participantMemberIds: ids,
+          otherPayers: [
+            ExpensePayment(
+              id: 0,
+              expenseId: 0,
+              memberId: ids[1],
+              amountMinor: 200_00,
+            ),
+          ],
+        );
 
-      await expenseRepository.createExpense(
-        tripId: tripId,
-        description: 'Expense 2',
-        amountMinor: 300_00,
-        payerMemberId: ids[2],
-        participantMemberIds: ids,
-      );
+        await expenseRepository.createExpense(
+          tripId: tripId,
+          description: 'Expense 2',
+          amountMinor: 300_00,
+          payerMemberId: ids[2],
+          participantMemberIds: ids,
+        );
 
-      // Load all payments and shares.
-      final allExpenses = await expenseRepository.getByTrip(tripId);
-      final allShares = await expenseRepository.getSharesFor(allExpenses[0].id)
-        ..addAll(await expenseRepository.getSharesFor(allExpenses[1].id));
-      final allPayments = await loadPayments(tripId);
+        // Load all payments and shares.
+        final allExpenses = await expenseRepository.getByTrip(tripId);
+        final allShares =
+            await expenseRepository.getSharesFor(allExpenses[0].id)
+              ..addAll(await expenseRepository.getSharesFor(allExpenses[1].id));
+        final allPayments = await loadPayments(tripId);
 
-      // Sum of all payments must equal sum of all expense amounts.
-      final totalPaid = allPayments.fold<int>(0, (s, p) => s + p.amountMinor);
-      final totalAmount = allExpenses.fold<int>(
-        0,
-        (s, e) => s + e.amountMinor,
-      );
-      expect(totalPaid, totalAmount);
+        // Sum of all payments must equal sum of all expense amounts.
+        final totalPaid = allPayments.fold<int>(0, (s, p) => s + p.amountMinor);
+        final totalAmount = allExpenses.fold<int>(
+          0,
+          (s, e) => s + e.amountMinor,
+        );
+        expect(totalPaid, totalAmount);
 
-      // Sum of all shares must equal sum of all group amounts.
-      final totalShares = allShares.fold<int>(0, (s, sh) => s + sh.shareMinor);
-      final totalGroupAmount = allExpenses.fold<int>(
-        0,
-        (s, e) => s + (e.amountMinor - e.externalAmountMinor),
-      );
-      expect(totalShares, totalGroupAmount);
+        // Sum of all shares must equal sum of all group amounts.
+        final totalShares = allShares.fold<int>(
+          0,
+          (s, sh) => s + sh.shareMinor,
+        );
+        final totalGroupAmount = allExpenses.fold<int>(
+          0,
+          (s, e) => s + (e.amountMinor - e.externalAmountMinor),
+        );
+        expect(totalShares, totalGroupAmount);
 
-      // Net position across all members must be zero
-      // (for equal split without external amounts).
-      final netByMember = <int, int>{};
-      for (final p in allPayments) {
-        netByMember[p.memberId] = (netByMember[p.memberId] ?? 0) + p.amountMinor;
-      }
-      for (final s in allShares) {
-        netByMember[s.memberId] = (netByMember[s.memberId] ?? 0) - s.shareMinor;
-      }
-      final totalNet = netByMember.values.fold<int>(0, (s, v) => s + v);
-      expect(totalNet, 0);
-    });
+        // Net position across all members must be zero
+        // (for equal split without external amounts).
+        final netByMember = <int, int>{};
+        for (final p in allPayments) {
+          netByMember[p.memberId] =
+              (netByMember[p.memberId] ?? 0) + p.amountMinor;
+        }
+        for (final s in allShares) {
+          netByMember[s.memberId] =
+              (netByMember[s.memberId] ?? 0) - s.shareMinor;
+        }
+        final totalNet = netByMember.values.fold<int>(0, (s, v) => s + v);
+        expect(totalNet, 0);
+      },
+    );
 
     // ── Cross-team: common expense with multiple team payers ─────────────
 
-    test('Common expense across two teams: Dhar pays ₹2500, other pays ₹1500',
-        () async {
-      final (tripId, ids) = await seedTripWithMembers([
-        'Dhar', 'Gowtham', 'Sanu',
-      ]);
-      final (teamA, _) = await seedTeam(tripId, 'Team A', [ids[0], ids[1]]);
-      final (teamB, _) = await seedTeam(tripId, 'Team B', [ids[2]]);
+    test(
+      'Common expense across two teams: Dhar pays ₹2500, other pays ₹1500',
+      () async {
+        final (tripId, ids) = await seedTripWithMembers([
+          'Dhar',
+          'Gowtham',
+          'Sanu',
+        ]);
+        final (teamA, _) = await seedTeam(tripId, 'Team A', [ids[0], ids[1]]);
+        final (teamB, _) = await seedTeam(tripId, 'Team B', [ids[2]]);
 
-      // Common expense: ₹4000. Dhar pays ₹2500, Sanu pays ₹1500.
-      await expenseRepository.createExpense(
-        tripId: tripId,
-        description: 'Shared booking',
-        amountMinor: 4000_00,
-        payerMemberId: ids[0],
-        scope: ExpenseScope.team,
-        teamIds: [teamA, teamB],
-        payerTeamId: teamA,
-        participantMemberIds: ids,
-        otherPayers: [
-          ExpensePayment(
-            id: 0,
-            expenseId: 0,
-            memberId: ids[2],
-            amountMinor: 1500_00,
-            teamId: teamB,
-          ),
-        ],
-      );
+        // Common expense: ₹4000. Dhar pays ₹2500, Sanu pays ₹1500.
+        await expenseRepository.createExpense(
+          tripId: tripId,
+          description: 'Shared booking',
+          amountMinor: 4000_00,
+          payerMemberId: ids[0],
+          scope: ExpenseScope.team,
+          teamIds: [teamA, teamB],
+          payerTeamId: teamA,
+          participantMemberIds: ids,
+          otherPayers: [
+            ExpensePayment(
+              id: 0,
+              expenseId: 0,
+              memberId: ids[2],
+              amountMinor: 1500_00,
+              teamId: teamB,
+            ),
+          ],
+        );
 
-      final payments = await loadPayments(tripId);
-      final dharPay = payments.firstWhere((p) => p.memberId == ids[0]);
-      expect(dharPay.amountMinor, 2500_00);
+        final payments = await loadPayments(tripId);
+        final dharPay = payments.firstWhere((p) => p.memberId == ids[0]);
+        expect(dharPay.amountMinor, 2500_00);
 
-      final sanuPay = payments.firstWhere((p) => p.memberId == ids[2]);
-      expect(sanuPay.amountMinor, 1500_00);
+        final sanuPay = payments.firstWhere((p) => p.memberId == ids[2]);
+        expect(sanuPay.amountMinor, 1500_00);
 
-      final totalPaid = payments.fold<int>(0, (s, p) => s + p.amountMinor);
-      expect(totalPaid, 4000_00);
+        final totalPaid = payments.fold<int>(0, (s, p) => s + p.amountMinor);
+        expect(totalPaid, 4000_00);
 
-      // 3 participants → each owes ₹1333.33 (or similar).
-      final shares = await expenseRepository.getSharesFor(1);
-      expect(shares, hasLength(3));
-      final totalShares = shares.fold<int>(0, (s, sh) => s + sh.shareMinor);
-      expect(totalShares, 4000_00);
+        // 3 participants → each owes ₹1333.33 (or similar).
+        final shares = await expenseRepository.getSharesFor(1);
+        expect(shares, hasLength(3));
+        final totalShares = shares.fold<int>(0, (s, sh) => s + sh.shareMinor);
+        expect(totalShares, 4000_00);
 
-      // Dhar net: paid 2500, owes ~1333 → positive.
-      // Sanu net: paid 1500, owes ~1333 → positive.
-      // Gowtham net: paid 0, owes ~1333 → negative.
-      // Total net = 0.
-      final netByMember = <int, int>{};
-      for (final p in payments) {
-        netByMember[p.memberId] = p.amountMinor;
-      }
-      for (final s in shares) {
-        netByMember[s.memberId] = (netByMember[s.memberId] ?? 0) - s.shareMinor;
-      }
-      final totalNet = netByMember.values.fold<int>(0, (s, v) => s + v);
-      expect(totalNet, 0);
-    });
+        // Dhar net: paid 2500, owes ~1333 → positive.
+        // Sanu net: paid 1500, owes ~1333 → positive.
+        // Gowtham net: paid 0, owes ~1333 → negative.
+        // Total net = 0.
+        final netByMember = <int, int>{};
+        for (final p in payments) {
+          netByMember[p.memberId] = p.amountMinor;
+        }
+        for (final s in shares) {
+          netByMember[s.memberId] =
+              (netByMember[s.memberId] ?? 0) - s.shareMinor;
+        }
+        final totalNet = netByMember.values.fold<int>(0, (s, v) => s + v);
+        expect(totalNet, 0);
+      },
+    );
   });
 }

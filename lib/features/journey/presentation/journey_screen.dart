@@ -105,11 +105,12 @@ class _JourneyBodyState extends ConsumerState<_JourneyBody> {
     for (final entry in _participationOverrides.entries) {
       final memberId = entry.key.$1;
       final segmentId = entry.key.$2;
-      final expected = widget.journey.participations
-          .any((p) =>
-              p.memberId == memberId &&
-              p.segmentId == segmentId &&
-              p.participating == entry.value);
+      final expected = widget.journey.participations.any(
+        (p) =>
+            p.memberId == memberId &&
+            p.segmentId == segmentId &&
+            p.participating == entry.value,
+      );
       if (expected) {
         resolved.add(entry.key);
       }
@@ -206,8 +207,6 @@ class _JourneyBodyState extends ConsumerState<_JourneyBody> {
     }
   }
 
-
-
   void _editSegmentParticipants(TravelSegmentView view) {
     showModalBottomSheet<void>(
       context: context,
@@ -253,9 +252,11 @@ class _JourneyBodyState extends ConsumerState<_JourneyBody> {
                           onChanged: (value) {
                             // Apply optimistic update and refresh the sheet.
                             setState(() {
-                              _participationOverrides[
-                                (member.id, view.segment.id)
-                              ] = value;
+                              _participationOverrides[(
+                                    member.id,
+                                    view.segment.id,
+                                  )] =
+                                  value;
                             });
                             setSheetState(() {});
                             _persistParticipation(
@@ -278,11 +279,7 @@ class _JourneyBodyState extends ConsumerState<_JourneyBody> {
 
   /// Whether a member is participating in a segment, checking optimistic
   /// overrides first, then the stream-derived participation data.
-  bool _isParticipating(
-    int segmentId,
-    int memberId,
-    TravelSegmentView view,
-  ) {
+  bool _isParticipating(int segmentId, int memberId, TravelSegmentView view) {
     final override = _participationOverrides[(memberId, segmentId)];
     if (override != null) return override;
     return view.effectiveParticipants.contains(memberId);

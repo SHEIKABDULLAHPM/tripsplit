@@ -65,7 +65,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   tripSplitLogoSvg,
                   // Cap width so the 4:3 artwork never overruns tall or
                   // narrow screens; height follows the intrinsic ratio.
-                  width: (constraints.maxWidth * 0.78).clamp(0, 380),
+                  width: (constraints.maxWidth * 0.84).clamp(0, 460),
                 ),
               ),
             ),

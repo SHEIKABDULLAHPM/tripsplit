@@ -14,7 +14,7 @@ import 'package:tripsplit_funding_server/gw/simulated_gateway.dart';
 import 'package:tripsplit_funding_server/http/audit.dart';
 import 'package:tripsplit_funding_server/http/funding_server.dart';
 
-const _terms = '2026-09-01';
+const _terms = '2026-09-21';
 const _secret = 'test-webhook-secret';
 
 class TestContext {
@@ -152,12 +152,12 @@ void main() {
       expect(json['termsVersion'], _terms);
     });
 
-    test('SUPPORT_49 returns authoritative ₹49 (4900 paise, INR)', () async {
+    test('SUPPORT_49 returns authoritative ₹19 (1900 paise, INR)', () async {
       final res = await _createOrder(ctx);
       expect(res['status'], 200);
       final json = res['json'] as Map<String, dynamic>;
       expect(json['fundingType'], 'SUPPORT_49');
-      expect(json['amountMinor'], 4900);
+      expect(json['amountMinor'], 1900);
       expect(json['currency'], 'INR');
       expect(json['status'], 'CREATED');
       expect(json['termsVersion'], _terms);
@@ -169,11 +169,11 @@ void main() {
       expect(json['keyId'], isNull); // simulated gateway exposes no key
     });
 
-    test('FUTURE_199 returns authoritative ₹199 (19900 paise, INR)', () async {
+    test('FUTURE_199 returns authoritative ₹49 (4900 paise, INR)', () async {
       final res = await _createOrder(ctx, type: 'FUTURE_199');
       expect(res['status'], 200);
       final json = res['json'] as Map<String, dynamic>;
-      expect(json['amountMinor'], 19900);
+      expect(json['amountMinor'], 4900);
       expect(json['currency'], 'INR');
     });
 
@@ -184,7 +184,7 @@ void main() {
       );
       expect(res['status'], 200);
       final json = res['json'] as Map<String, dynamic>;
-      expect(json['amountMinor'], 4900);
+      expect(json['amountMinor'], 1900);
       expect(json['currency'], 'INR');
     });
 
@@ -397,7 +397,7 @@ void main() {
         'eventType': 'order.captured',
         'gatewayOrderId': gwo,
         'gatewayPaymentId': 'pay_bad',
-        'amountMinor': 4900,
+        'amountMinor': 1900,
         'currency': 'INR',
       }, secret: 'attacker-secret');
       expect(status, 401);
@@ -430,7 +430,7 @@ void main() {
         'eventType': 'order.captured',
         'gatewayOrderId': gwo,
         'gatewayPaymentId': 'pay_cur',
-        'amountMinor': 4900,
+        'amountMinor': 1900,
         'currency': 'USD',
       });
       expect(status, 400);
@@ -448,7 +448,7 @@ void main() {
         'eventType': 'order.captured',
         'gatewayOrderId': 'gwo_missing',
         'gatewayPaymentId': 'pay_unk',
-        'amountMinor': 4900,
+        'amountMinor': 1900,
         'currency': 'INR',
       });
       expect(status, 409);
@@ -576,10 +576,16 @@ void main() {
   });
 
   group('history', () {
+    test('admin key required', () async {
+      final (status, _) = await _get('${ctx.baseUrl}/api/v1/funding/history');
+      expect(status, 403);
+    });
+
     test('returns sanitized orders without any gateway secrets', () async {
       await _createOrder(ctx, idem: 'h1');
       final (status, json) = await _get(
         '${ctx.baseUrl}/api/v1/funding/history',
+        headers: {'X-Admin-Key': 'admin-key'},
       );
       expect(status, 200);
       final orders = json['orders'] as List;
@@ -637,6 +643,18 @@ void main() {
         big,
       );
       expect(status, 413);
+    });
+
+    test('malformed JSON body is rejected as bad request', () async {
+      final request =
+          http.Request(
+              'POST',
+              Uri.parse('${ctx.baseUrl}/api/v1/funding/orders'),
+            )
+            ..headers['content-type'] = 'application/json'
+            ..bodyBytes = utf8.encode('{not valid json');
+      final response = await http.Response.fromStream(await request.send());
+      expect(response.statusCode, 400);
     });
 
     test('excessive order volume is rate limited', () async {

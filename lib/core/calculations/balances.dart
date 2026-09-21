@@ -319,7 +319,8 @@ abstract final class BalanceCalculator {
                 (paidByMember[id] ?? 0) -
                 (paidOutByMember[id] ?? 0),
             effectiveNetPosition:
-                (groupOutlayByMember[id] ?? 0) - (shareByMember[id] ?? 0) +
+                (groupOutlayByMember[id] ?? 0) -
+                (shareByMember[id] ?? 0) +
                 (receivedByMember[id] ?? 0) -
                 (paidOutByMember[id] ?? 0),
           ),

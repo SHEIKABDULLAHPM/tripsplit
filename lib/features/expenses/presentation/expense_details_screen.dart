@@ -280,14 +280,12 @@ class ExpenseDetailsScreen extends ConsumerWidget {
                           ),
                           decoration: BoxDecoration(
                             color: isFullyPaid
-                                ? Theme.of(context)
-                                    .colorScheme
-                                    .primaryContainer
-                                    .withAlpha(80)
-                                : Theme.of(context)
-                                    .colorScheme
-                                    .errorContainer
-                                    .withAlpha(80),
+                                ? Theme.of(
+                                    context,
+                                  ).colorScheme.primaryContainer.withAlpha(80)
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.errorContainer.withAlpha(80),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Column(
@@ -301,12 +299,8 @@ class ExpenseDetailsScreen extends ConsumerWidget {
                                         : Icons.pending_outlined,
                                     size: 16,
                                     color: isFullyPaid
-                                        ? Theme.of(context)
-                                            .colorScheme
-                                            .primary
-                                        : Theme.of(context)
-                                            .colorScheme
-                                            .error,
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Theme.of(context).colorScheme.error,
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
@@ -319,12 +313,12 @@ class ExpenseDetailsScreen extends ConsumerWidget {
                                         ?.copyWith(
                                           fontWeight: FontWeight.w600,
                                           color: isFullyPaid
-                                              ? Theme.of(context)
-                                                  .colorScheme
-                                                  .primary
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .error,
+                                              ? Theme.of(
+                                                  context,
+                                                ).colorScheme.primary
+                                              : Theme.of(
+                                                  context,
+                                                ).colorScheme.error,
                                         ),
                                   ),
                                 ],
@@ -332,9 +326,7 @@ class ExpenseDetailsScreen extends ConsumerWidget {
                               const SizedBox(height: 4),
                               Text(
                                 'Paid: ${MoneyCalculator.format(totalPaid)} of ${MoneyCalculator.format(expense.amountMinor)}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .captionMuted,
+                                style: Theme.of(context).textTheme.captionMuted,
                               ),
                             ],
                           ),
@@ -382,15 +374,11 @@ class ExpenseDetailsScreen extends ConsumerWidget {
                               vertical: 2,
                             ),
                             leading: MemberAvatar(
-                              tripView
-                                  .memberById(payment.memberId)
-                                  .name,
+                              tripView.memberById(payment.memberId).name,
                               radius: 11,
                             ),
                             title: Text(
-                              tripView
-                                  .memberById(payment.memberId)
-                                  .name,
+                              tripView.memberById(payment.memberId).name,
                             ),
                             trailing: MoneyText(
                               payment.amountMinor,
@@ -440,12 +428,10 @@ class ExpenseDetailsScreen extends ConsumerWidget {
                           memberId: item.shares[i].memberId,
                           shareMinor: item.shares[i].shareMinor,
                           paidMinor: paymentsForExpense
-                              .where((p) =>
-                                  p.memberId == item.shares[i].memberId)
-                              .fold<int>(
-                                0,
-                                (sum, p) => sum + p.amountMinor,
-                              ),
+                              .where(
+                                (p) => p.memberId == item.shares[i].memberId,
+                              )
+                              .fold<int>(0, (sum, p) => sum + p.amountMinor),
                           tripView: tripView,
                         ),
                     ],

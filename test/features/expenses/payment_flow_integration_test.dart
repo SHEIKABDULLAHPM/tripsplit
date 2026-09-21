@@ -31,12 +31,14 @@ void main() {
   Future<(int tripId, List<int> ids)> seedTripWithMembers(
     List<String> names,
   ) async {
-    final tripId =
-        await db.tripDao.insert(TripsCompanion.insert(name: 'Trip'));
+    final tripId = await db.tripDao.insert(TripsCompanion.insert(name: 'Trip'));
     final ids = <int>[];
     for (final name in names) {
-      ids.add(await db.memberDao
-          .insert(MembersCompanion.insert(tripId: tripId, name: name)));
+      ids.add(
+        await db.memberDao.insert(
+          MembersCompanion.insert(tripId: tripId, name: name),
+        ),
+      );
     }
     return (tripId, ids);
   }
@@ -55,9 +57,9 @@ void main() {
 
   /// Loads the full TripView for balance and settlement computation.
   Future<TripView?> loadTripView(int tripId) async {
-    final tripRow = await (db.tripDao.select(db.trips)
-          ..where((t) => t.id.equals(tripId)))
-        .getSingleOrNull();
+    final tripRow = await (db.tripDao.select(
+      db.trips,
+    )..where((t) => t.id.equals(tripId))).getSingleOrNull();
     if (tripRow == null) return null;
 
     final memberRows = await db.memberDao.getByTrip(tripId);
@@ -80,8 +82,11 @@ void main() {
     final shares = shareRows.map((r) => r.toDomain()).toList();
 
     final expenses = expenseRows
-        .map((r) => r.toDomain()
-            .copyWith(teamIds: teamIdsByExpense[r.id] ?? const []))
+        .map(
+          (r) => r.toDomain().copyWith(
+            teamIds: teamIdsByExpense[r.id] ?? const [],
+          ),
+        )
         .toList();
 
     final settlementPlan = SettlementCalculator.calculate(
@@ -138,62 +143,63 @@ void main() {
   // ══════════════════════════════════════════════════════════════════════
 
   group('Single payer expenses', () {
-    test('A pays ₹1000 for 3 people → A owed ₹666.67, B & C owe ₹333.33',
-        () async {
-      final (tripId, ids) = await seedTripWithMembers(['A', 'B', 'C']);
+    test(
+      'A pays ₹1000 for 3 people → A owed ₹666.67, B & C owe ₹333.33',
+      () async {
+        final (tripId, ids) = await seedTripWithMembers(['A', 'B', 'C']);
 
-      await expenseRepository.createExpense(
-        tripId: tripId,
-        description: 'Dinner',
-        amountMinor: 1000_00,
-        payerMemberId: ids[0],
-        participantMemberIds: ids,
-      );
+        await expenseRepository.createExpense(
+          tripId: tripId,
+          description: 'Dinner',
+          amountMinor: 1000_00,
+          payerMemberId: ids[0],
+          participantMemberIds: ids,
+        );
 
-      final view = await loadTripView(tripId);
-      expect(view, isNotNull);
+        final view = await loadTripView(tripId);
+        expect(view, isNotNull);
 
-      final balances = view!.balances;
+        final balances = view!.balances;
 
-      // Total expenses = ₹1000 (group portion, no external).
-      expect(balances.totalExpenses, 1000_00);
+        // Total expenses = ₹1000 (group portion, no external).
+        expect(balances.totalExpenses, 1000_00);
 
-      final aBal = balanceFor(balances, ids[0]);
-      final bBal = balanceFor(balances, ids[1]);
-      final cBal = balanceFor(balances, ids[2]);
+        final aBal = balanceFor(balances, ids[0]);
+        final bBal = balanceFor(balances, ids[1]);
+        final cBal = balanceFor(balances, ids[2]);
 
-      // A paid ₹1000.
-      expect(aBal.actualPaid, 1000_00);
-      // A's share is ₹333.34 (largest remainder).
-      expect(aBal.expenseShare, 333_34);
-      // A is owed ₹666.66.
-      expect(aBal.netPosition, 666_66);
-      expect(aBal.amountToReceive, 666_66);
-      expect(aBal.amountToPay, 0);
+        // A paid ₹1000.
+        expect(aBal.actualPaid, 1000_00);
+        // A's share is ₹333.34 (largest remainder).
+        expect(aBal.expenseShare, 333_34);
+        // A is owed ₹666.66.
+        expect(aBal.netPosition, 666_66);
+        expect(aBal.amountToReceive, 666_66);
+        expect(aBal.amountToPay, 0);
 
-      // B paid ₹0, owes ₹333.33.
-      expect(bBal.actualPaid, 0);
-      expect(bBal.expenseShare, 333_33);
-      expect(bBal.netPosition, -333_33);
-      expect(bBal.amountToPay, 333_33);
+        // B paid ₹0, owes ₹333.33.
+        expect(bBal.actualPaid, 0);
+        expect(bBal.expenseShare, 333_33);
+        expect(bBal.netPosition, -333_33);
+        expect(bBal.amountToPay, 333_33);
 
-      // C paid ₹0, owes ₹333.33.
-      expect(cBal.actualPaid, 0);
-      expect(cBal.expenseShare, 333_33);
-      expect(cBal.netPosition, -333_33);
-      expect(cBal.amountToPay, 333_33);
+        // C paid ₹0, owes ₹333.33.
+        expect(cBal.actualPaid, 0);
+        expect(cBal.expenseShare, 333_33);
+        expect(cBal.netPosition, -333_33);
+        expect(cBal.amountToPay, 333_33);
 
-      // Net across all members sums to 0.
-      final totalNet = balances.members.fold<int>(
-        0,
-        (sum, m) => sum + m.netPosition,
-      );
-      expect(totalNet, 0);
-    });
+        // Net across all members sums to 0.
+        final totalNet = balances.members.fold<int>(
+          0,
+          (sum, m) => sum + m.netPosition,
+        );
+        expect(totalNet, 0);
+      },
+    );
 
     test('A pays for B, C, D → correct net positions', () async {
-      final (tripId, ids) =
-          await seedTripWithMembers(['A', 'B', 'C', 'D']);
+      final (tripId, ids) = await seedTripWithMembers(['A', 'B', 'C', 'D']);
 
       await expenseRepository.createExpense(
         tripId: tripId,
@@ -277,115 +283,118 @@ void main() {
   // ══════════════════════════════════════════════════════════════════════
 
   group('Team-scoped common expenses', () {
-    test('Two teams, A pays ₹2500 + C pays ₹1500 → correct per-member nets',
-        () async {
-      final (tripId, ids) = await seedTripWithMembers([
-        'Dhar',
-        'Gowtham',
-        'Sanu',
-      ]);
-      final (teamA, _) = await seedTeam(tripId, 'Team A', [ids[0], ids[1]]);
-      final (teamB, _) = await seedTeam(tripId, 'Team B', [ids[2]]);
+    test(
+      'Two teams, A pays ₹2500 + C pays ₹1500 → correct per-member nets',
+      () async {
+        final (tripId, ids) = await seedTripWithMembers([
+          'Dhar',
+          'Gowtham',
+          'Sanu',
+        ]);
+        final (teamA, _) = await seedTeam(tripId, 'Team A', [ids[0], ids[1]]);
+        final (teamB, _) = await seedTeam(tripId, 'Team B', [ids[2]]);
 
-      // ₹4000 common expense. Dhar pays ₹2500, Sanu pays ₹1500.
-      await expenseRepository.createExpense(
-        tripId: tripId,
-        description: 'Shared booking',
-        amountMinor: 4000_00,
-        payerMemberId: ids[0],
-        scope: ExpenseScope.team,
-        teamIds: [teamA, teamB],
-        payerTeamId: teamA,
-        participantMemberIds: ids,
-        otherPayers: [
-          ExpensePayment(
-            id: 0,
-            expenseId: 0,
-            memberId: ids[2],
-            amountMinor: 1500_00,
-            teamId: teamB,
-          ),
-        ],
-      );
+        // ₹4000 common expense. Dhar pays ₹2500, Sanu pays ₹1500.
+        await expenseRepository.createExpense(
+          tripId: tripId,
+          description: 'Shared booking',
+          amountMinor: 4000_00,
+          payerMemberId: ids[0],
+          scope: ExpenseScope.team,
+          teamIds: [teamA, teamB],
+          payerTeamId: teamA,
+          participantMemberIds: ids,
+          otherPayers: [
+            ExpensePayment(
+              id: 0,
+              expenseId: 0,
+              memberId: ids[2],
+              amountMinor: 1500_00,
+              teamId: teamB,
+            ),
+          ],
+        );
 
-      final view = await loadTripView(tripId);
-      expect(view, isNotNull);
+        final view = await loadTripView(tripId);
+        expect(view, isNotNull);
 
-      final balances = view!.balances;
-      expect(balances.totalExpenses, 4000_00);
+        final balances = view!.balances;
+        expect(balances.totalExpenses, 4000_00);
 
-      // 3 participants → ₹1333.34 / ₹1333.33 / ₹1333.33.
-      final dharBal = balanceFor(balances, ids[0]);
-      final sanuBal = balanceFor(balances, ids[2]);
-      final gowthamBal = balanceFor(balances, ids[1]);
+        // 3 participants → ₹1333.34 / ₹1333.33 / ₹1333.33.
+        final dharBal = balanceFor(balances, ids[0]);
+        final sanuBal = balanceFor(balances, ids[2]);
+        final gowthamBal = balanceFor(balances, ids[1]);
 
-      // Dhar paid ₹2500, share ₹1333.34 → net +₹1166.66.
-      expect(dharBal.actualPaid, 2500_00);
-      expect(dharBal.expenseShare, 1333_34);
-      expect(dharBal.netPosition, 1166_66);
+        // Dhar paid ₹2500, share ₹1333.34 → net +₹1166.66.
+        expect(dharBal.actualPaid, 2500_00);
+        expect(dharBal.expenseShare, 1333_34);
+        expect(dharBal.netPosition, 1166_66);
 
-      // Sanu paid ₹1500, share ₹1333.33 → net +₹166.67.
-      expect(sanuBal.actualPaid, 1500_00);
-      expect(sanuBal.expenseShare, 1333_33);
-      expect(sanuBal.netPosition, 166_67);
+        // Sanu paid ₹1500, share ₹1333.33 → net +₹166.67.
+        expect(sanuBal.actualPaid, 1500_00);
+        expect(sanuBal.expenseShare, 1333_33);
+        expect(sanuBal.netPosition, 166_67);
 
-      // Gowtham paid ₹0, share ₹1333.33 → net −₹1333.33.
-      expect(gowthamBal.actualPaid, 0);
-      expect(gowthamBal.expenseShare, 1333_33);
-      expect(gowthamBal.netPosition, -1333_33);
+        // Gowtham paid ₹0, share ₹1333.33 → net −₹1333.33.
+        expect(gowthamBal.actualPaid, 0);
+        expect(gowthamBal.expenseShare, 1333_33);
+        expect(gowthamBal.netPosition, -1333_33);
 
-      // Nets sum to zero.
-      final totalNet = balances.members.fold<int>(
-        0,
-        (sum, m) => sum + m.netPosition,
-      );
-      expect(totalNet, 0);
-    });
+        // Nets sum to zero.
+        final totalNet = balances.members.fold<int>(
+          0,
+          (sum, m) => sum + m.netPosition,
+        );
+        expect(totalNet, 0);
+      },
+    );
 
     test(
-        'Dhar (Team A) pays on behalf of Team B → payment correctly reduces Team B balance',
-        () async {
-      final (tripId, ids) = await seedTripWithMembers([
-        'Dhar',
-        'Gowtham',
-        'Sanu',
-      ]);
-      final (teamA, _) = await seedTeam(tripId, 'Team A', [ids[0], ids[1]]);
-      final (teamB, _) = await seedTeam(tripId, 'Team B', [ids[2]]);
+      'Dhar (Team A) pays on behalf of Team B → payment correctly reduces Team B balance',
+      () async {
+        final (tripId, ids) = await seedTripWithMembers([
+          'Dhar',
+          'Gowtham',
+          'Sanu',
+        ]);
+        final (teamA, _) = await seedTeam(tripId, 'Team A', [ids[0], ids[1]]);
+        final (teamB, _) = await seedTeam(tripId, 'Team B', [ids[2]]);
 
-      // Common expense ₹3000. Dhar pays all of it on behalf of Team B.
-      await expenseRepository.createExpense(
-        tripId: tripId,
-        description: 'Transport',
-        amountMinor: 3000_00,
-        payerMemberId: ids[0],
-        scope: ExpenseScope.team,
-        teamIds: [teamA, teamB],
-        payerTeamId: teamB,
-        participantMemberIds: ids,
-      );
+        // Common expense ₹3000. Dhar pays all of it on behalf of Team B.
+        await expenseRepository.createExpense(
+          tripId: tripId,
+          description: 'Transport',
+          amountMinor: 3000_00,
+          payerMemberId: ids[0],
+          scope: ExpenseScope.team,
+          teamIds: [teamA, teamB],
+          payerTeamId: teamB,
+          participantMemberIds: ids,
+        );
 
-      final view = await loadTripView(tripId);
-      final balances = view!.balances;
+        final view = await loadTripView(tripId);
+        final balances = view!.balances;
 
-      // Verify payment was stored.
-      expect(view!.payments, hasLength(1));
-      expect(view.payments.single.memberId, ids[0]);
-      expect(view.payments.single.amountMinor, 3000_00);
-      expect(view.payments.single.teamId, teamB);
+        // Verify payment was stored.
+        expect(view.payments, hasLength(1));
+        expect(view.payments.single.memberId, ids[0]);
+        expect(view.payments.single.amountMinor, 3000_00);
+        expect(view.payments.single.teamId, teamB);
 
-      final dharBal = balanceFor(balances, ids[0]);
-      expect(dharBal.actualPaid, 3000_00);
-      expect(dharBal.expenseShare, 1000_00);
-      expect(dharBal.netPosition, 2000_00);
+        final dharBal = balanceFor(balances, ids[0]);
+        expect(dharBal.actualPaid, 3000_00);
+        expect(dharBal.expenseShare, 1000_00);
+        expect(dharBal.netPosition, 2000_00);
 
-      for (final id in ids.sublist(1)) {
-        final bal = balanceFor(balances, id);
-        expect(bal.actualPaid, 0);
-        expect(bal.expenseShare, 1000_00);
-        expect(bal.netPosition, -1000_00);
-      }
-    });
+        for (final id in ids.sublist(1)) {
+          final bal = balanceFor(balances, id);
+          expect(bal.actualPaid, 0);
+          expect(bal.expenseShare, 1000_00);
+          expect(bal.netPosition, -1000_00);
+        }
+      },
+    );
 
     test('Team settlement: payments correctly reflect in team view', () async {
       final (tripId, ids) = await seedTripWithMembers([
@@ -400,10 +409,8 @@ void main() {
         'I',
         'J',
       ]);
-      final (team1, _) =
-          await seedTeam(tripId, 'Team 1', ids.sublist(0, 5));
-      final (team2, _) =
-          await seedTeam(tripId, 'Team 2', ids.sublist(5));
+      final (team1, _) = await seedTeam(tripId, 'Team 1', ids.sublist(0, 5));
+      final (team2, _) = await seedTeam(tripId, 'Team 2', ids.sublist(5));
 
       // ₹4000 across 10 people. Team 1 pays ₹2500, Team 2 pays ₹1500.
       await expenseRepository.createExpense(
@@ -492,45 +499,46 @@ void main() {
     });
 
     test(
-        'After partial settlement, outstanding reduces but payments remain',
-        () async {
-      final (tripId, ids) = await seedTripWithMembers(['A', 'B']);
+      'After partial settlement, outstanding reduces but payments remain',
+      () async {
+        final (tripId, ids) = await seedTripWithMembers(['A', 'B']);
 
-      // A pays ₹200 for 2 people → each owes ₹100.
-      await expenseRepository.createExpense(
-        tripId: tripId,
-        description: 'Taxi',
-        amountMinor: 200_00,
-        payerMemberId: ids[0],
-        participantMemberIds: ids,
-      );
+        // A pays ₹200 for 2 people → each owes ₹100.
+        await expenseRepository.createExpense(
+          tripId: tripId,
+          description: 'Taxi',
+          amountMinor: 200_00,
+          payerMemberId: ids[0],
+          participantMemberIds: ids,
+        );
 
-      // B pays A ₹50 (partial).
-      await db.settlementDao.insert(
-        SettlementsCompanion(
-          tripId: Value(tripId),
-          fromMemberId: Value(ids[1]),
-          toMemberId: Value(ids[0]),
-          amountMinor: const Value(100_00),
-          amountPaidMinor: const Value(50_00),
-          settledAt: Value(DateTime.now()),
-        ),
-      );
+        // B pays A ₹50 (partial).
+        await db.settlementDao.insert(
+          SettlementsCompanion(
+            tripId: Value(tripId),
+            fromMemberId: Value(ids[1]),
+            toMemberId: Value(ids[0]),
+            amountMinor: const Value(100_00),
+            amountPaidMinor: const Value(50_00),
+            settledAt: Value(DateTime.now()),
+          ),
+        );
 
-      final view = await loadTripView(tripId);
-      final balances = view!.balances;
+        final view = await loadTripView(tripId);
+        final balances = view!.balances;
 
-      // Payment records still show A paid ₹200.
-      final aBal = balanceFor(balances, ids[0]);
-      expect(aBal.actualPaid, 200_00);
-      expect(aBal.expenseShare, 100_00);
+        // Payment records still show A paid ₹200.
+        final aBal = balanceFor(balances, ids[0]);
+        expect(aBal.actualPaid, 200_00);
+        expect(aBal.expenseShare, 100_00);
 
-      // Cash remaining accounts for the settlement transfer.
-      // A contributed 0, received 50 (settlement), paid 200 (expense) → -150.
-      expect(aBal.cashRemaining, -150_00);
-      // B contributed 0, received 0, paid 0 (expense), paid 50 (settlement) → -50.
-      final bBal = balanceFor(balances, ids[1]);
-      expect(bBal.cashRemaining, -50_00);
-    });
+        // Cash remaining accounts for the settlement transfer.
+        // A contributed 0, received 50 (settlement), paid 200 (expense) → -150.
+        expect(aBal.cashRemaining, -150_00);
+        // B contributed 0, received 0, paid 0 (expense), paid 50 (settlement) → -50.
+        final bBal = balanceFor(balances, ids[1]);
+        expect(bBal.cashRemaining, -50_00);
+      },
+    );
   });
 }

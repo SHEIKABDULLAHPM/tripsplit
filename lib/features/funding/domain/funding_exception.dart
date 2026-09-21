@@ -6,6 +6,8 @@ library;
 
 import 'dart:developer' as developer;
 
+import 'package:flutter/foundation.dart';
+
 /// Categorizes why a funding network call failed.
 enum FundingFailureKind {
   offline,
@@ -29,14 +31,20 @@ class FundingException implements Exception {
   String toString() => 'FundingException($kind): $message';
 }
 
-/// Logs a funding debug message (development only — never logs secrets).
+/// Logs a funding debug message (development builds only — never logs
+/// secrets, and never emitted into release logs).
 void fundingLog(String message) {
-  developer.log('[FUNDING] $message', name: 'funding');
+  if (kDebugMode) {
+    developer.log('[FUNDING] $message', name: 'funding');
+  }
 }
 
-/// Logs a funding error (development only — never logs secrets).
+/// Logs a funding error (development builds only — never logs secrets, and
+/// never emitted into release logs).
 void fundingLogError(String message, [Object? error]) {
-  developer.log('[FUNDING][ERROR] $message', name: 'funding', error: error);
+  if (kDebugMode) {
+    developer.log('[FUNDING][ERROR] $message', name: 'funding', error: error);
+  }
 }
 
 /// The offline message used whenever funding needs the network.

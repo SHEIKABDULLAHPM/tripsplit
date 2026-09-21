@@ -5,9 +5,17 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tripsplit/app/router.dart';
+import 'package:tripsplit/app/widgets/help_support_popup.dart';
 import 'package:tripsplit/app/widgets/home_screen.dart';
 import 'package:tripsplit/database/app_database.dart';
 import 'package:tripsplit/injection/database_providers.dart';
+
+/// Reports the Help & Support popup as already shown so these navigation
+/// tests are not blocked by the app-open popup.
+class _ShownHelpSupportPopupFlag extends HelpSupportPopupFlag {
+  @override
+  bool build() => true;
+}
 
 void main() {
   group('AppRouter', () {
@@ -24,6 +32,9 @@ void main() {
           overrides: [
             appDatabaseProvider.overrideWithValue(
               AppDatabase.forTesting(NativeDatabase.memory()),
+            ),
+            helpSupportPopupFlagProvider.overrideWith(
+              _ShownHelpSupportPopupFlag.new,
             ),
           ],
           child: MaterialApp.router(routerConfig: router),
@@ -88,7 +99,7 @@ void main() {
       tester,
     ) async {
       final db = AppDatabase.forTesting(NativeDatabase.memory());
-      addTearDown(() => db.closeDatabase());
+      addTearDown(db.closeDatabase);
       final tripId = await db.tripDao.insert(
         TripsCompanion.insert(name: 'Test Trip'),
       );
@@ -96,7 +107,12 @@ void main() {
       final router = AppRouter.create();
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [appDatabaseProvider.overrideWithValue(db)],
+          overrides: [
+            appDatabaseProvider.overrideWithValue(db),
+            helpSupportPopupFlagProvider.overrideWith(
+              _ShownHelpSupportPopupFlag.new,
+            ),
+          ],
           child: MaterialApp.router(routerConfig: router),
         ),
       );

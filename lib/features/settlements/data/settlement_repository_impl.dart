@@ -5,7 +5,6 @@ import '../../../core/calculations/settlements.dart';
 import '../../../core/errors/app_exception.dart';
 import '../../../database/app_database.dart';
 import '../../../database/domain_mappers.dart';
-import '../../expenses/domain/expense_share.dart';
 import '../domain/settlement.dart';
 import '../domain/settlement_repository.dart';
 
@@ -163,28 +162,28 @@ class SettlementRepositoryImpl implements SettlementRepository {
   Future<void> deleteById(int id) => _db.settlementDao.deleteById(id);
 
   Future<SettlementResult> _currentSettlementPlan(int tripId) async {
-    final (expenseRows, shareRows, settlementRows, paymentRows, teamLinkRows) =
-        await (
+    final (
+      expenseRows,
+      shareRows,
+      settlementRows,
+      paymentRows,
+      teamLinkRows,
+      teamMemberRows,
+    ) = await (
       _db.expenseDao.getByTrip(tripId),
       _db.expenseDao.getSharesByTrip(tripId),
       _db.settlementDao.getByTrip(tripId),
       _db.journeyDao.getPaymentsByTrip(tripId),
       _db.expenseDao.getTeamLinksByTrip(tripId),
+      _db.journeyDao.getTeamMembersByTrip(tripId),
     ).wait;
 
     final allExpenses = expenseRows.map((row) => row.toDomain()).toList();
     final allShares = shareRows.map((row) => row.toDomain()).toList();
 
-    // Build team membership from expense-team links and shares
-    final sharesByExpense = <int, List<ExpenseShare>>{};
-    for (final share in allShares) {
-      sharesByExpense.putIfAbsent(share.expenseId, () => []).add(share);
-    }
     final teamIdsByExpense = <int, List<int>>{};
     for (final link in teamLinkRows) {
-      teamIdsByExpense
-          .putIfAbsent(link.expenseId, () => [])
-          .add(link.teamId);
+      teamIdsByExpense.putIfAbsent(link.expenseId, () => []).add(link.teamId);
     }
     // Enrich expenses with team IDs
     for (var i = 0; i < allExpenses.length; i++) {
@@ -196,16 +195,17 @@ class SettlementRepositoryImpl implements SettlementRepository {
       }
     }
 
-    // Derive team membership from expense data
+    // Real team membership (team_members rows), identical to the trip view so
+    // record-payment and edit validation always use the same plan that the
+    // screens display. An expense-share-derived map would treat every
+    // participant of a multi-team expense as a member of every linked team and
+    // let cross-team edges leak back in, silently shrinking the pair's
+    // outstanding and rejecting valid payments.
     final teamMemberIds = <int, Set<int>>{};
-    for (final expense in allExpenses) {
-      if (expense.teamIds.isEmpty) continue;
-      final expenseShares = sharesByExpense[expense.id] ?? const [];
-      for (final share in expenseShares) {
-        for (final teamId in expense.teamIds) {
-          teamMemberIds.putIfAbsent(teamId, () => {}).add(share.memberId);
-        }
-      }
+    for (final membership in teamMemberRows) {
+      teamMemberIds
+          .putIfAbsent(membership.teamId, () => {})
+          .add(membership.memberId);
     }
 
     return SettlementCalculator.calculate(

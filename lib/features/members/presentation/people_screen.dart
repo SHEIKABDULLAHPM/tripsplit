@@ -810,10 +810,11 @@ class _ContributionsSummary extends ConsumerWidget {
                 ),
               );
         } on AppException catch (error) {
-          if (context.mounted)
+          if (context.mounted) {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text(error.message)));
+          }
         }
       }
     } else if (action == 'delete') {
@@ -830,10 +831,11 @@ class _ContributionsSummary extends ConsumerWidget {
               .read(contributionRepositoryProvider)
               .deleteById(contribution.id);
         } on AppException catch (error) {
-          if (context.mounted)
+          if (context.mounted) {
             ScaffoldMessenger.of(
               context,
             ).showSnackBar(SnackBar(content: Text(error.message)));
+          }
         }
       }
     }

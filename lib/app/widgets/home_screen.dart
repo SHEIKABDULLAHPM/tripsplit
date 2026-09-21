@@ -16,25 +16,40 @@ import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 import 'brand_lockup.dart';
 import 'edit_trip_dialog.dart';
+import 'help_support_popup.dart';
 
 /// Landing screen shown at `/`.
 ///
 /// Lists every trip as a summary card with budget, spending, member and
 /// expense counts, plus a primary action to create a new trip. The overflow
 /// menu replays the onboarding tour for anyone who wants to see it again.
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showHelpSupportPopupIfNeeded(context, ref);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final trips = ref.watch(homeViewProvider);
 
     return Scaffold(
       appBar: AppBar(
         // Persistent brand presence: the official mark alone in the leading
         // slot, keeping the title contextual ("Trips").
-        leadingWidth: 44,
-        leading: const Center(child: TripSplitMark(size: 28)),
+        leadingWidth: 56,
+        leading: const Center(child: TripSplitMark(size: 36)),
         title: const Text('Trips'),
         actions: [
           PopupMenuButton<String>(

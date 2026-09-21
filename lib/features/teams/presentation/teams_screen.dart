@@ -353,7 +353,9 @@ class _TeamCardState extends ConsumerState<_TeamCard> {
         .toList();
 
     // Compute team-level financials using the same calculation engine
-    final paymentsByExpense = PaymentAllocator.byExpense(widget.tripView.payments);
+    final paymentsByExpense = PaymentAllocator.byExpense(
+      widget.tripView.payments,
+    );
     final teamMemberIds = teamMembers.value?.map((m) => m.id).toSet() ?? {};
 
     final paidByMember = <int, int>{};
@@ -361,14 +363,16 @@ class _TeamCardState extends ConsumerState<_TeamCard> {
 
     for (final item in teamExpenses) {
       final expense = item.expense;
-      // Paid amounts via PaymentAllocator (same engine as balance screen)
+      // Paid amounts via PaymentAllocator (same engine as balance screen).
+      // Only cash paid by this team's own members is attributed here, so a
+      // multi-team expense never shows another team's payer on this card.
       final outlay = PaymentAllocator.groupOutlayByMember(
         expense,
         paymentsByExpense[expense.id] ?? const [],
       );
       for (final entry in outlay.entries) {
-        paidByMember[entry.key] =
-            (paidByMember[entry.key] ?? 0) + entry.value;
+        if (!teamMemberIds.contains(entry.key)) continue;
+        paidByMember[entry.key] = (paidByMember[entry.key] ?? 0) + entry.value;
       }
 
       // Share amounts (only for team members)
@@ -494,8 +498,7 @@ class _TeamCardState extends ConsumerState<_TeamCard> {
                   for (final memberId in <int>{
                     ...shareByMember.keys,
                     ...paidByMember.keys,
-                  }.toList()
-                    ..sort())
+                  }.toList()..sort())
                     _TeamMemberRow(
                       name: widget.tripView.memberById(memberId).name,
                       share: shareByMember[memberId] ?? 0,
@@ -588,7 +591,11 @@ class _TeamMemberRow extends StatelessWidget {
         : net < 0
         ? StatusTone.warning
         : StatusTone.neutral;
-    final label = net > 0 ? 'Receives' : net < 0 ? 'Owes' : 'Balanced';
+    final label = net > 0
+        ? 'Receives'
+        : net < 0
+        ? 'Owes'
+        : 'Balanced';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),

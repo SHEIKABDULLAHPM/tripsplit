@@ -51,7 +51,10 @@ void main() {
       teamId: 20,
     ),
   ];
-  const teamMemberIds = {10: {1, 2}, 20: {3, 4}};
+  const teamMemberIds = {
+    10: {1, 2},
+    20: {3, 4},
+  };
 
   SettlementResult plan({
     List<Expense>? expenses,
@@ -72,21 +75,15 @@ void main() {
       .toSet();
 
   group('Team-aware settlement plan', () {
-    test(
-      'non-payer members owe only their own team payer; payers balance '
-      'between teams (no greedy cross-member edge 4->1)',
-      () {
-        final result = plan();
+    test('non-payer members owe only their own team payer; payers balance '
+        'between teams (no greedy cross-member edge 4->1)', () {
+      final result = plan();
 
-        expect(
-          describe(result),
-          {'2->1:100000', '4->3:100000', '3->1:50000'},
-        );
-        // Together they settle B (1,000) and D (1,000); the +500 payer edge
-        // reflects A fronting more than Team 2's payer C.
-        expect(result.totalOutstanding, 2500_00);
-      },
-    );
+      expect(describe(result), {'2->1:100000', '4->3:100000', '3->1:50000'});
+      // Together they settle B (1,000) and D (1,000); the +500 payer edge
+      // reflects A fronting more than Team 2's payer C.
+      expect(result.totalOutstanding, 2500_00);
+    });
 
     test('without team context the greedy plan is still used', () {
       final result = SettlementCalculator.calculate(
@@ -96,15 +93,11 @@ void main() {
         payments: unbalancedPayments,
       );
 
-      expect(
-        describe(result),
-        {'2->1:100000', '4->1:50000', '4->3:50000'},
-      );
+      expect(describe(result), {'2->1:100000', '4->1:50000', '4->3:50000'});
       expect(result.totalOutstanding, 2000_00);
     });
 
-    test('remaining nets reflect member-level positions after settlements',
-        () {
+    test('remaining nets reflect member-level positions after settlements', () {
       final result = plan();
 
       expect(result.remainingNets[1], 1500_00);
@@ -118,12 +111,7 @@ void main() {
       // Team 2; everyone shares equally (400 each).
       final shares = <ExpenseShare>[
         for (var i = 1; i <= 10; i++)
-          ExpenseShare(
-            id: i,
-            expenseId: 101,
-            memberId: i,
-            shareMinor: 400_00,
-          ),
+          ExpenseShare(id: i, expenseId: 101, memberId: i, shareMinor: 400_00),
       ];
       final payments = [
         const ExpensePayment(
@@ -144,7 +132,10 @@ void main() {
       final result = plan(
         shares: shares,
         payments: payments,
-        teamIds: {10: {1, 2, 3, 4, 5}, 20: {6, 7, 8, 9, 10}},
+        teamIds: {
+          10: {1, 2, 3, 4, 5},
+          20: {6, 7, 8, 9, 10},
+        },
       );
 
       final expected = <String>{
@@ -170,10 +161,7 @@ void main() {
         ],
       );
 
-      expect(
-        describe(result),
-        {'2->1:100000', '3->1:100000', '4->1:100000'},
-      );
+      expect(describe(result), {'2->1:100000', '3->1:100000', '4->1:100000'});
       expect(result.totalOutstanding, 3000_00);
     });
 
@@ -193,10 +181,7 @@ void main() {
       );
       final result = plan(settlements: [legacy]);
 
-      expect(
-        describe(result),
-        {'2->1:100000', '4->3:50000', '3->1:50000'},
-      );
+      expect(describe(result), {'2->1:100000', '4->3:50000', '3->1:50000'});
       // D still owes 500 of his original 1,000; the paid 500 is honoured.
       expect(result.totalOutstanding, 2000_00);
 
@@ -229,10 +214,7 @@ void main() {
       expect(result.suggestions, isEmpty);
       expect(result.totalOutstanding, 0);
       // But cash truly moved: payer positions still net to zero.
-      expect(
-        result.remainingNets.values.fold<int>(0, (sum, v) => sum + v),
-        0,
-      );
+      expect(result.remainingNets.values.fold<int>(0, (sum, v) => sum + v), 0);
     });
 
     test('partial payment decays only the matching team edge', () {
@@ -250,67 +232,66 @@ void main() {
       );
       final result = plan(settlements: [partial]);
 
-      expect(
-        describe(result),
-        {'2->1:100000', '4->3:60000', '3->1:50000'},
-      );
+      expect(describe(result), {'2->1:100000', '4->3:60000', '3->1:50000'});
     });
 
-    test('same-team payer plus generic payer never double-charges a member', () {
-      // Team 10 = {1, 2, 3}. A pays ₹1,200 for Team 10; C also pays ₹800 as a
-      // generic payer (not tied to a team). Shares are ₹667/₹667/₹666.
-      const shares = [
-        ExpenseShare(id: 1, expenseId: 101, memberId: 1, shareMinor: 667_00),
-        ExpenseShare(id: 2, expenseId: 101, memberId: 2, shareMinor: 667_00),
-        ExpenseShare(id: 3, expenseId: 101, memberId: 3, shareMinor: 666_00),
-      ];
-      const payments = [
-        ExpensePayment(
-          id: 1,
-          expenseId: 101,
-          memberId: 1,
-          amountMinor: 1200_00,
-          teamId: 10,
-        ),
-        ExpensePayment(
-          id: 2,
-          expenseId: 101,
-          memberId: 3,
-          amountMinor: 800_00,
-        ),
-      ];
-      final result = plan(
-        shares: shares,
-        payments: payments,
-        teamIds: {10: {1, 2, 3}},
-      );
+    test(
+      'same-team payer plus generic payer never double-charges a member',
+      () {
+        // Team 10 = {1, 2, 3}. A pays ₹1,200 for Team 10; C also pays ₹800 as a
+        // generic payer (not tied to a team). Shares are ₹667/₹667/₹666.
+        const shares = [
+          ExpenseShare(id: 1, expenseId: 101, memberId: 1, shareMinor: 667_00),
+          ExpenseShare(id: 2, expenseId: 101, memberId: 2, shareMinor: 667_00),
+          ExpenseShare(id: 3, expenseId: 101, memberId: 3, shareMinor: 666_00),
+        ];
+        const payments = [
+          ExpensePayment(
+            id: 1,
+            expenseId: 101,
+            memberId: 1,
+            amountMinor: 1200_00,
+            teamId: 10,
+          ),
+          ExpensePayment(
+            id: 2,
+            expenseId: 101,
+            memberId: 3,
+            amountMinor: 800_00,
+          ),
+        ];
+        final result = plan(
+          shares: shares,
+          payments: payments,
+          teamIds: {
+            10: {1, 2, 3},
+          },
+        );
 
-      // B's ₹667 share is split over both funders by how much each paid:
-      // 1200/2000 × 667 = 400.20 and 800/2000 × 667 = 266.80. The payer
-      // imbalance then closes C→A for the remaining 132.80. B is never
-      // charged twice.
-      expect(
-        describe(result),
-        {'2->1:40020', '2->3:26680', '3->1:13280'},
-      );
-      expect(result.totalOutstanding, 799_80);
-      // And every member still lands exactly on their member-level net.
-      expect(result.remainingNets[1], 533_00);
-      expect(result.remainingNets[2], -667_00);
-      expect(result.remainingNets[3], 134_00);
-    });
+        // B's ₹667 share is split over both funders by how much each paid:
+        // 1200/2000 × 667 = 400.20 and 800/2000 × 667 = 266.80. The payer
+        // imbalance then closes C→A for the remaining 132.80. B is never
+        // charged twice.
+        expect(describe(result), {'2->1:40020', '2->3:26680', '3->1:13280'});
+        expect(result.totalOutstanding, 799_80);
+        // And every member still lands exactly on their member-level net.
+        expect(result.remainingNets[1], 533_00);
+        expect(result.remainingNets[2], -667_00);
+        expect(result.remainingNets[3], 134_00);
+      },
+    );
 
     test('membership in both teams does not multiply obligations', () {
       // Member 3 belongs to Team 10 AND Team 20, and is also the Team 20
       // payer. Overlap must not re-charge anyone or distort the share split.
       final result = plan(
-        teamIds: {10: {1, 2, 3}, 20: {3, 4}},
+        teamIds: {
+          10: {1, 2, 3},
+          20: {3, 4},
+        },
       );
 
-      expect(
-        describe(result),
-        {'2->1:100000', '4->3:100000', '3->1:50000'},
-      );
+      expect(describe(result), {'2->1:100000', '4->3:100000', '3->1:50000'});
       expect(result.totalOutstanding, 2500_00);
     });
 
@@ -319,13 +300,18 @@ void main() {
       // share). No team payer owns him: his share is split between both
       // funders, and the residual edge C→A closes the payers exactly.
       final result = plan(
-        teamIds: {10: {1}, 20: {3, 4}},
+        teamIds: {
+          10: {1},
+          20: {3, 4},
+        },
       );
 
-      expect(
-        describe(result),
-        {'2->1:62500', '2->3:37500', '4->3:100000', '3->1:87500'},
-      );
+      expect(describe(result), {
+        '2->1:62500',
+        '2->3:37500',
+        '4->3:100000',
+        '3->1:87500',
+      });
       // Every member's suggestion flow equals their net position:
       // 1 receives 625 + 875 = 1500; 2 pays 1000; 3 receives
       // 375 + 1000 and pays 875 → net +500; 4 pays 1000.

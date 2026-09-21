@@ -22,16 +22,7 @@ class FundingScreen extends StatelessWidget {
     final overview = FundingLegalBundle.documentFor('overview');
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Support TripSplit'),
-        actions: [
-          IconButton(
-            tooltip: 'Funding history',
-            icon: const Icon(Icons.history),
-            onPressed: () => context.push(AppRoutes.fundingHistory),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Support TripSplit')),
       body: SafeArea(
         bottom: true,
         child: ListView(

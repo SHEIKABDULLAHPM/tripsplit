@@ -21,7 +21,7 @@ FundingOrder _order() => FundingOrder(
   amountMinor: 4900,
   currency: 'INR',
   status: FundingStatus.created,
-  termsVersion: '2026-09-01',
+  termsVersion: '2026-09-21',
   createdAt: '2026-09-01T00:00:00Z',
   idempotencyKey: null,
 );

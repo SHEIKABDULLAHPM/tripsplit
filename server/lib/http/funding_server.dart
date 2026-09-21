@@ -10,6 +10,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
+
 import '../config/legal_copy.dart';
 import '../config/server_config.dart';
 import '../db/funding_store.dart';
@@ -279,9 +281,11 @@ class FundingServer {
       return request.response;
     }
 
-    // GET /history
+    // GET /history (admin) — order metadata is not public; it belongs to the
+    // operator, not to every client that can reach the server.
     if (rest.length == 1 && rest[0] == 'history') {
       if (method != 'GET') return null;
+      _requireAdmin(request);
       await _sendJson(request.response, 200, {'orders': service.history()});
       return request.response;
     }
@@ -427,20 +431,43 @@ class FundingServer {
 
   // ------------------------------------------------------------- helpers
 
+  /// Verifies the operator header with a SHA-256-folded constant-time
+  /// comparison so response timing does not leak how many prefix bytes of the
+  /// admin key are correct.
   void _requireAdmin(HttpRequest request) {
     final key = request.headers.value('X-Admin-Key');
-    if (config.adminKey == null || key == null || key != config.adminKey) {
+    final expected = config.adminKey;
+    if (expected == null ||
+        key == null ||
+        !_constantTimeEquals(key, expected)) {
       throw ApiErrors.forbidden('Administrator access required.');
     }
   }
 
+  bool _constantTimeEquals(String a, String b) {
+    final aBytes = sha256.convert(utf8.encode(a)).bytes;
+    final bBytes = sha256.convert(utf8.encode(b)).bytes;
+    var diff = 0;
+    for (var i = 0; i < aBytes.length; i++) {
+      diff |= aBytes[i] ^ bBytes[i];
+    }
+    return diff == 0;
+  }
+
   Future<Map<String, dynamic>> _readJsonBody(HttpRequest request) async {
     final bytes = await _readRawBody(request);
-    final decoded = jsonDecode(utf8.decode(bytes, allowMalformed: false));
-    if (decoded is! Map<String, dynamic>) {
+    final String decoded;
+    final Object? decodedJson;
+    try {
+      decoded = utf8.decode(bytes, allowMalformed: false);
+      decodedJson = jsonDecode(decoded);
+    } on FormatException {
       throw ApiErrors.badRequest('Request body must be a JSON object.');
     }
-    return decoded;
+    if (decodedJson is! Map<String, dynamic>) {
+      throw ApiErrors.badRequest('Request body must be a JSON object.');
+    }
+    return decodedJson;
   }
 
   Future<Uint8List> _readRawBody(HttpRequest request) async {
@@ -469,6 +496,8 @@ class FundingServer {
       'json',
       charset: 'utf-8',
     );
+    // Funding responses carry order and payment metadata; never cache them.
+    response.headers.set('Cache-Control', 'no-store');
     if (config.environment == 'test') {
       response.headers.add('Access-Control-Allow-Origin', '*');
     }

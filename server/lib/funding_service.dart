@@ -381,10 +381,7 @@ class FundingService {
             'eventId': event.gatewayEventId,
             'gatewayOrderId': event.gatewayOrderId,
           });
-          return const WebhookResult(
-            processed: true,
-            idempotent: true,
-          );
+          return const WebhookResult(processed: true, idempotent: true);
         }
         if (order.status.isPaid) {
           store.markWebhookEventProcessed(event.gatewayEventId);

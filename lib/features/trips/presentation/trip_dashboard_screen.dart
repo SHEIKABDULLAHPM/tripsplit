@@ -212,10 +212,11 @@ class TripDashboardScreen extends ConsumerWidget {
       await ref.read(tripRepositoryProvider).deleteById(trip.id);
       if (context.mounted) context.go(AppRoutes.home);
     } on AppException catch (e) {
-      if (context.mounted)
+      if (context.mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
     }
   }
 }

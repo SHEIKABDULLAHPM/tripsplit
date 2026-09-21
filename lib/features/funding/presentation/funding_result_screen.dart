@@ -171,11 +171,6 @@ class _ReceiptBody extends StatelessWidget {
           onPressed: () => context.go(AppRoutes.funding),
           child: const Text('Done'),
         ),
-        const SizedBox(height: AppSpacing.sm),
-        TextButton(
-          onPressed: () => context.push(AppRoutes.fundingHistory),
-          child: const Text('View funding history'),
-        ),
       ],
     );
   }
@@ -334,9 +329,8 @@ class _PendingBodyState extends ConsumerState<_PendingBody> {
         ),
         const SizedBox(height: AppSpacing.xl),
         FilledButton(
-          onPressed: () => ref.invalidate(
-            _statusProvider(widget.order.publicReference),
-          ),
+          onPressed: () =>
+              ref.invalidate(_statusProvider(widget.order.publicReference)),
           child: const Text('Check again'),
         ),
         const SizedBox(height: AppSpacing.sm),

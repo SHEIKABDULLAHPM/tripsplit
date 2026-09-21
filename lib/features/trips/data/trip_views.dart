@@ -284,9 +284,9 @@ TripView? _resolveTripView(List<Object?> values) {
   // linked team and let cross-team edges leak back in.
   final teamMemberIds = <int, Set<int>>{};
   for (final membership in values[8] as List<TeamMemberRow>) {
-    teamMemberIds.putIfAbsent(membership.teamId, () => {}).add(
-      membership.memberId,
-    );
+    teamMemberIds
+        .putIfAbsent(membership.teamId, () => {})
+        .add(membership.memberId);
   }
 
   final settlementPlan = SettlementCalculator.calculate(

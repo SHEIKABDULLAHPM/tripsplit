@@ -15,8 +15,8 @@ void main() {
     });
 
     test('display price is UI-only and never the stored amount', () {
-      expect(FundingType.support49.displayRupees, 49);
-      expect(FundingType.future199.displayRupees, 199);
+      expect(FundingType.support49.displayRupees, 19);
+      expect(FundingType.future199.displayRupees, 49);
     });
   });
 
@@ -49,7 +49,7 @@ void main() {
       'amountMinor': amount,
       'currency': 'INR',
       'status': status,
-      'termsVersion': '2026-09-01',
+      'termsVersion': '2026-09-21',
       'checkout': {'mode': mode},
       'note': ?note,
     };

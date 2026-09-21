@@ -10,8 +10,8 @@ void main() {
     });
 
     test('amounts are exact and in minor units (paise)', () {
-      expect(FundingType.support49.amountMinor, 4900); // ₹49
-      expect(FundingType.future199.amountMinor, 19900); // ₹199
+      expect(FundingType.support49.amountMinor, 1900); // ₹19
+      expect(FundingType.future199.amountMinor, 4900); // ₹49
       expect(FundingType.support49.currency, 'INR');
       expect(FundingType.future199.currency, 'INR');
     });
@@ -40,7 +40,8 @@ void main() {
     test('legal transitions', () {
       final from = FundingStatus.created;
       for (final to in FundingStatus.values) {
-        final allowed = to == FundingStatus.created ||
+        final allowed =
+            to == FundingStatus.created ||
             to == FundingStatus.checkoutStarted ||
             to == FundingStatus.paymentPending ||
             to == FundingStatus.cancelled ||
@@ -51,10 +52,22 @@ void main() {
     });
 
     test('terminal states cannot leave', () {
-      expect(FundingStatus.failed.canTransitionTo(FundingStatus.verified), isFalse);
-      expect(FundingStatus.cancelled.canTransitionTo(FundingStatus.verified), isFalse);
-      expect(FundingStatus.verified.canTransitionTo(FundingStatus.refunded), isFalse);
-      expect(FundingStatus.verified.canTransitionTo(FundingStatus.captured), isFalse);
+      expect(
+        FundingStatus.failed.canTransitionTo(FundingStatus.verified),
+        isFalse,
+      );
+      expect(
+        FundingStatus.cancelled.canTransitionTo(FundingStatus.verified),
+        isFalse,
+      );
+      expect(
+        FundingStatus.verified.canTransitionTo(FundingStatus.refunded),
+        isFalse,
+      );
+      expect(
+        FundingStatus.verified.canTransitionTo(FundingStatus.captured),
+        isFalse,
+      );
     });
 
     test('capture path reaches verified', () {

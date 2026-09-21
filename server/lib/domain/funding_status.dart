@@ -37,9 +37,9 @@ enum FundingStatus {
 
   /// True when the order reached a terminal state.
   bool get isTerminal => switch (this) {
-        verified || failed || cancelled || expired || refunded => true,
-        _ => false,
-      };
+    verified || failed || cancelled || expired || refunded => true,
+    _ => false,
+  };
 
   /// True when money has actually been received and remains held.
   bool get isPaid => this == verified || this == refunded;
@@ -68,45 +68,45 @@ enum FinancialStateTransition {
     if (from.isTerminal) return false;
     return switch (from) {
       FundingStatus.created => switch (to) {
-          FundingStatus.checkoutStarted ||
-          FundingStatus.paymentPending ||
-          FundingStatus.cancelled ||
-          FundingStatus.expired ||
-          FundingStatus.failed => true,
-          _ => false,
-        },
+        FundingStatus.checkoutStarted ||
+        FundingStatus.paymentPending ||
+        FundingStatus.cancelled ||
+        FundingStatus.expired ||
+        FundingStatus.failed => true,
+        _ => false,
+      },
       FundingStatus.checkoutStarted => switch (to) {
-          FundingStatus.paymentPending ||
-          FundingStatus.authorized ||
-          FundingStatus.cancelled ||
-          FundingStatus.expired ||
-          FundingStatus.failed => true,
-          _ => false,
-        },
+        FundingStatus.paymentPending ||
+        FundingStatus.authorized ||
+        FundingStatus.cancelled ||
+        FundingStatus.expired ||
+        FundingStatus.failed => true,
+        _ => false,
+      },
       FundingStatus.paymentPending => switch (to) {
-          FundingStatus.authorized ||
-          FundingStatus.verificationPending ||
-          FundingStatus.failed ||
-          FundingStatus.expired ||
-          FundingStatus.cancelled => true,
-          _ => false,
-        },
+        FundingStatus.authorized ||
+        FundingStatus.verificationPending ||
+        FundingStatus.failed ||
+        FundingStatus.expired ||
+        FundingStatus.cancelled => true,
+        _ => false,
+      },
       FundingStatus.authorized => switch (to) {
-          FundingStatus.captured ||
-          FundingStatus.verificationPending ||
-          FundingStatus.failed ||
-          FundingStatus.refunded ||
-          FundingStatus.expired => true,
-          _ => false,
-        },
+        FundingStatus.captured ||
+        FundingStatus.verificationPending ||
+        FundingStatus.failed ||
+        FundingStatus.refunded ||
+        FundingStatus.expired => true,
+        _ => false,
+      },
       FundingStatus.captured => switch (to) {
-          FundingStatus.verificationPending || FundingStatus.verified => true,
-          _ => false,
-        },
+        FundingStatus.verificationPending || FundingStatus.verified => true,
+        _ => false,
+      },
       FundingStatus.verificationPending => switch (to) {
-          FundingStatus.verified || FundingStatus.failed => true,
-          _ => false,
-        },
+        FundingStatus.verified || FundingStatus.failed => true,
+        _ => false,
+      },
       _ => false,
     };
   }

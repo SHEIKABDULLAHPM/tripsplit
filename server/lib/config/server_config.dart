@@ -108,7 +108,7 @@ class ServerConfig {
       razorpayKeySecret: keySecret,
       razorpayApiBase: env('RAZORPAY_API_BASE') ?? 'https://api.razorpay.com',
       adminKey: env('FUNDING_ADMIN_KEY'),
-      currentTermsVersion: env('CURRENT_TERMS_VERSION') ?? '2026-09-01',
+      currentTermsVersion: env('CURRENT_TERMS_VERSION') ?? '2026-09-21',
       publicBaseUrl: env('FUNDING_PUBLIC_BASE_URL') ?? 'http://localhost:8080',
       maxBodyBytes: int.tryParse(env('MAX_BODY_BYTES') ?? '') ?? 1 << 20,
       createdAt: DateTime.now().millisecondsSinceEpoch,

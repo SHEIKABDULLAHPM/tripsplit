@@ -52,7 +52,7 @@ class _RecordingClient extends FundingApiClient {
 
 Map<String, dynamic> _orderJson({
   required String mode,
-  Object? amountMinor = 4900,
+  Object? amountMinor = 1900,
   String status = 'CREATED',
 }) => {
   'publicReference': 'TS_1010',
@@ -60,7 +60,7 @@ Map<String, dynamic> _orderJson({
   'amountMinor': amountMinor,
   'currency': 'INR',
   'status': status,
-  'termsVersion': '2026-09-01',
+  'termsVersion': '2026-09-21',
   'checkout': {'mode': mode},
 };
 
@@ -82,12 +82,12 @@ void main() {
         idempotencyKey: 'flutter_idem',
       );
 
-      expect(order.amountMinor, 4900);
+      expect(order.amountMinor, 1900);
       expect(order.status, FundingStatus.created);
       final (path, body) = client.posts.single;
       expect(path, '/api/v1/funding/orders');
       expect(body['fundingType'], 'SUPPORT_49');
-      expect(body['termsVersion'], '2026-09-01');
+      expect(body['termsVersion'], '2026-09-21');
       expect(body['accepted'], true);
       expect(body['idempotencyKey'], 'flutter_idem');
     });

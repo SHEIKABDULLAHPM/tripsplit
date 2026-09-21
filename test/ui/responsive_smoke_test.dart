@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tripsplit/app/theme/app_theme.dart';
+import 'package:tripsplit/app/widgets/help_support_popup.dart';
 import 'package:tripsplit/app/widgets/home_screen.dart';
 import 'package:tripsplit/database/app_database.dart';
 import 'package:tripsplit/features/balances/presentation/balances_screen.dart';
@@ -11,6 +12,13 @@ import 'package:tripsplit/features/members/presentation/people_screen.dart';
 import 'package:tripsplit/features/settlements/presentation/settlements_screen.dart';
 import 'package:tripsplit/features/trips/presentation/trip_dashboard_screen.dart';
 import 'package:tripsplit/injection/database_providers.dart';
+
+/// Reports the Help & Support popup as already shown so these resize
+/// smoke tests are not blocked by the app-open popup.
+class _ShownHelpSupportPopupFlag extends HelpSupportPopupFlag {
+  @override
+  bool build() => true;
+}
 
 /// Exercises the redesigned screens at three widths plus a large text scale to
 /// catch overflow exceptions before they ship.
@@ -45,7 +53,10 @@ void main() {
   );
 
   Widget buildHomeScreen(BoxConstraints constraints) => ProviderScope(
-    overrides: [appDatabaseProvider.overrideWithValue(db)],
+    overrides: [
+      appDatabaseProvider.overrideWithValue(db),
+      helpSupportPopupFlagProvider.overrideWith(_ShownHelpSupportPopupFlag.new),
+    ],
     child: MaterialApp(
       theme: AppTheme.light,
       home: const Scaffold(body: HomeScreen()),

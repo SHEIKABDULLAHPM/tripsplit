@@ -11,7 +11,7 @@ abstract interface class ConnectivityChecker {
 /// Production implementation backed by the connectivity_plus plugin.
 class ConnectivityPlusChecker implements ConnectivityChecker {
   ConnectivityPlusChecker({Connectivity? connectivity})
-      : _connectivity = connectivity ?? Connectivity();
+    : _connectivity = connectivity ?? Connectivity();
 
   final Connectivity _connectivity;
 

@@ -89,24 +89,24 @@ class BrandLockup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final markSize = switch (size) {
-      BrandLockupSize.small => 40.0,
-      BrandLockupSize.medium => 72.0,
-      BrandLockupSize.hero => 96.0,
+      BrandLockupSize.small => 48.0,
+      BrandLockupSize.medium => 88.0,
+      BrandLockupSize.hero => 112.0,
     };
     final iconSize = switch (size) {
-      BrandLockupSize.small => 22.0,
-      BrandLockupSize.medium => 36.0,
-      BrandLockupSize.hero => 48.0,
+      BrandLockupSize.small => 26.0,
+      BrandLockupSize.medium => 44.0,
+      BrandLockupSize.hero => 56.0,
     };
     final wordmarkSize = switch (size) {
-      BrandLockupSize.small => 20.0,
-      BrandLockupSize.medium => 34.0,
-      BrandLockupSize.hero => 42.0,
+      BrandLockupSize.small => 22.0,
+      BrandLockupSize.medium => 38.0,
+      BrandLockupSize.hero => 48.0,
     };
     final gap = switch (size) {
       BrandLockupSize.small => AppSpacing.sm,
-      BrandLockupSize.medium => AppSpacing.lg,
-      BrandLockupSize.hero => AppSpacing.xl,
+      BrandLockupSize.medium => AppSpacing.xl,
+      BrandLockupSize.hero => AppSpacing.xxl,
     };
 
     return Column(

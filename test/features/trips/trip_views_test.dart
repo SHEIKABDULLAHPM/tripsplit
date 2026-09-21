@@ -72,7 +72,7 @@ void main() {
         participantMemberIds: [anaId],
       );
 
-      final homeSub = container.listen(homeViewProvider, (_, __) {});
+      final homeSub = container.listen(homeViewProvider, (_, _) {});
       addTearDown(homeSub.close);
       await waitFor(() => container.read(homeViewProvider).hasValue);
       final cards = homeCards();
@@ -92,7 +92,7 @@ void main() {
       final anaId = await db.memberDao.insert(
         MembersCompanion.insert(tripId: tripId, name: 'Ana'),
       );
-      final homeSub = container.listen(homeViewProvider, (_, __) {});
+      final homeSub = container.listen(homeViewProvider, (_, _) {});
       addTearDown(homeSub.close);
       await waitFor(() => container.read(homeViewProvider).hasValue);
 
@@ -127,7 +127,7 @@ void main() {
       );
       final expenseId = (await db.expenseDao.getByTrip(tripId)).single.id;
 
-      final sub = container.listen(tripViewProvider(tripId), (_, __) {});
+      final sub = container.listen(tripViewProvider(tripId), (_, _) {});
       addTearDown(sub.close);
       await waitFor(() => container.read(tripViewProvider(tripId)).hasValue);
       final view = tripView(tripId)!;
@@ -140,7 +140,7 @@ void main() {
     });
 
     test('tripViewProvider yields null for an unknown trip', () async {
-      final sub = container.listen(tripViewProvider(999), (_, __) {});
+      final sub = container.listen(tripViewProvider(999), (_, _) {});
       addTearDown(sub.close);
       await waitFor(() => container.read(tripViewProvider(999)).hasValue);
       expect(tripView(999), isNull);
@@ -163,7 +163,7 @@ void main() {
         payerMemberId: anaId,
         participantMemberIds: [anaId, benId],
       );
-      final sub = container.listen(tripViewProvider(tripId), (_, __) {});
+      final sub = container.listen(tripViewProvider(tripId), (_, _) {});
       addTearDown(sub.close);
       await waitFor(() => container.read(tripViewProvider(tripId)).hasValue);
 
@@ -196,8 +196,9 @@ void main() {
         final ids = <int>[];
         for (final name in ['A', 'B', 'C', 'D']) {
           ids.add(
-            await db.memberDao
-                .insert(MembersCompanion.insert(tripId: tripId, name: name)),
+            await db.memberDao.insert(
+              MembersCompanion.insert(tripId: tripId, name: name),
+            ),
           );
         }
         final team10 = await db.journeyDao.insertTeam(
@@ -235,7 +236,7 @@ void main() {
           ],
         );
 
-        final sub = container.listen(tripViewProvider(tripId), (_, __) {});
+        final sub = container.listen(tripViewProvider(tripId), (_, _) {});
         addTearDown(sub.close);
         await waitFor(() => container.read(tripViewProvider(tripId)).hasValue);
 
@@ -245,14 +246,11 @@ void main() {
             .toSet();
         // B owes only A (his team payer); D owes only C; the ~₹500 imbalance
         // between the payers closes as a C→A edge. No cross-team 4->1 leak.
-        expect(
-          edges,
-          {
-            '${ids[1]}->${ids[0]}:100000',
-            '${ids[3]}->${ids[2]}:100000',
-            '${ids[2]}->${ids[0]}:50000',
-          },
-        );
+        expect(edges, {
+          '${ids[1]}->${ids[0]}:100000',
+          '${ids[3]}->${ids[2]}:100000',
+          '${ids[2]}->${ids[0]}:50000',
+        });
         expect(plan.totalOutstanding, 2500_00);
       },
     );

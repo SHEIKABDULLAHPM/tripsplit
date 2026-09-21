@@ -34,8 +34,7 @@ class FundingApiClient {
         const Duration(seconds: 5),
       );
       await response.drain<void>();
-      final ok =
-          response.statusCode >= 200 && response.statusCode < 400;
+      final ok = response.statusCode >= 200 && response.statusCode < 400;
       fundingLog('Connectivity check: status=${response.statusCode} ok=$ok');
       return ok;
     } on SocketException catch (e) {
@@ -106,24 +105,15 @@ class FundingApiClient {
       return decoded;
     } on TimeoutException {
       fundingLogError('Request timed out: $method $url');
-      throw const FundingException(
-        FundingFailureKind.timeout,
-        fundingTimedOut,
-      );
+      throw const FundingException(FundingFailureKind.timeout, fundingTimedOut);
     } on SocketException catch (e) {
-      fundingLogError(
-        'SocketException: $method $url — ${e.message}',
-        e,
-      );
+      fundingLogError('SocketException: $method $url — ${e.message}', e);
       throw const FundingException(
         FundingFailureKind.serverUnreachable,
         fundingServerUnavailable,
       );
     } on HttpException catch (e) {
-      fundingLogError(
-        'HttpException: $method $url — ${e.message}',
-        e,
-      );
+      fundingLogError('HttpException: $method $url — ${e.message}', e);
       throw const FundingException(
         FundingFailureKind.serverUnreachable,
         fundingServerUnavailable,

@@ -1,10 +1,9 @@
 /// Bundled legal copy for the funding feature.
 ///
-/// IMPORTANT (requirement): these documents are DRAFT placeholders so the
-/// system is structurally complete. They are NOT final legal text and must be
-/// reviewed/replaced by a qualified legal professional before real money is
-/// processed. They are bundled so the review screen works offline; the server
-/// additionally serves the same bundle and enforces its terms version.
+/// Versioned and effective; the server serves the same bundle and enforces
+/// its terms version. Bundled so the review screen works offline. If the
+/// documents change, bump [FundingLegalBundle.effectiveVersion]/termsVersion
+/// on both the app and the server together.
 library;
 
 import '../domain/funding_info.dart';
@@ -18,8 +17,8 @@ abstract final class FundingLegalBundle {
       name: 'overview',
       title: 'Funding Overview',
       jurisdiction: 'India',
-      effectiveVersion: '2026-09-01',
-      draft: true,
+      effectiveVersion: '2026-09-21',
+      draft: false,
       sections: [
         FundingDocumentSection(
           'What this is',
@@ -40,8 +39,8 @@ abstract final class FundingLegalBundle {
       name: 'terms',
       title: 'Funding Terms',
       jurisdiction: 'India',
-      effectiveVersion: '2026-09-01',
-      draft: true,
+      effectiveVersion: '2026-09-21',
+      draft: false,
       sections: [
         FundingDocumentSection(
           '1. Agreement',
@@ -57,7 +56,7 @@ abstract final class FundingLegalBundle {
         FundingDocumentSection(
           '3. Acceptance',
           'By tapping the payment button you confirm you have read these '
-              'terms (version 2026-09-01) and the privacy and refund notices.',
+              'terms (version 2026-09-21) and the privacy and refund notices.',
         ),
       ],
     ),
@@ -65,8 +64,8 @@ abstract final class FundingLegalBundle {
       name: 'privacy',
       title: 'Privacy Notice',
       jurisdiction: 'India',
-      effectiveVersion: '2026-09-01',
-      draft: true,
+      effectiveVersion: '2026-09-21',
+      draft: false,
       sections: [
         FundingDocumentSection(
           '1. Data collected',
@@ -92,8 +91,8 @@ abstract final class FundingLegalBundle {
       name: 'refund',
       title: 'Refund Policy',
       jurisdiction: 'India',
-      effectiveVersion: '2026-09-01',
-      draft: true,
+      effectiveVersion: '2026-09-21',
+      draft: false,
       sections: [
         FundingDocumentSection(
           '1. Contributions are final',
@@ -118,8 +117,8 @@ abstract final class FundingLegalBundle {
       name: 'payment',
       title: 'Payment Information',
       jurisdiction: 'India',
-      effectiveVersion: '2026-09-01',
-      draft: true,
+      effectiveVersion: '2026-09-21',
+      draft: false,
       sections: [
         FundingDocumentSection(
           '1. Currency',

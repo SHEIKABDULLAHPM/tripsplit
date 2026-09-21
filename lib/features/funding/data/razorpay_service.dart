@@ -20,8 +20,10 @@ class RazorpayService implements RazorpayCheckoutLauncher {
     required RazorpayOnError onError,
     required RazorpayOnExternalWallet onExternalWallet,
   }) {
-    fundingLog('Opening Razorpay Checkout: orderId=${request.orderId} '
-        'amount=${request.amountMinor} currency=${request.currency}');
+    fundingLog(
+      'Opening Razorpay Checkout: orderId=${request.orderId} '
+      'amount=${request.amountMinor} currency=${request.currency}',
+    );
     _razorpay.clear();
     _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, (
       PaymentSuccessResponse response,

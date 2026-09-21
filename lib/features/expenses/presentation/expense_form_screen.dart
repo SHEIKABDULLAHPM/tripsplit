@@ -384,9 +384,10 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
       _teamPaymentRows().fold<int>(0, (sum, row) => sum + row.amountMinor);
 
   int get _otherPayersTotal => _otherPayers.fold<int>(
-        0,
-        (sum, p) => sum + (MoneyCalculator.parseToMinorOrNull(p.controller.text) ?? 0),
-      );
+    0,
+    (sum, p) =>
+        sum + (MoneyCalculator.parseToMinorOrNull(p.controller.text) ?? 0),
+  );
 
   static int _segmentOrder(List<TravelSegment> segments, int segmentId) {
     final sorted = [...segments]
@@ -427,9 +428,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
     }
     final tripView = ref.read(tripViewProvider(widget.tripId)).value;
     if (tripView == null) return const [];
-    return tripView.members
-        .where((m) => memberIds.contains(m.id))
-        .toList();
+    return tripView.members.where((m) => memberIds.contains(m.id)).toList();
   }
 
   Future<void> _submit({required List<Member> members}) async {
@@ -465,7 +464,9 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
       // and represent additional payments on top of team-level payments.
       final rows = _teamPaymentRows();
       if (rows.isEmpty && otherPayers.isEmpty) {
-        _showMessage('Choose a payer for at least one team, or add other payers.');
+        _showMessage(
+          'Choose a payer for at least one team, or add other payers.',
+        );
         return;
       }
       if (rows.isNotEmpty) {
@@ -843,14 +844,12 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                             padding: const EdgeInsets.all(AppSpacing.md),
                             decoration: BoxDecoration(
                               color: matched
-                                  ? Theme.of(context)
-                                      .colorScheme
-                                      .primaryContainer
-                                      .withAlpha(80)
-                                  : Theme.of(context)
-                                      .colorScheme
-                                      .errorContainer
-                                      .withAlpha(80),
+                                  ? Theme.of(
+                                      context,
+                                    ).colorScheme.primaryContainer.withAlpha(80)
+                                  : Theme.of(
+                                      context,
+                                    ).colorScheme.errorContainer.withAlpha(80),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Column(
@@ -864,12 +863,10 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                                           : Icons.paid_outlined,
                                       size: 16,
                                       color: matched
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .primary
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .error,
+                                          ? Theme.of(
+                                              context,
+                                            ).colorScheme.primary
+                                          : Theme.of(context).colorScheme.error,
                                     ),
                                     const SizedBox(width: 6),
                                     Expanded(
@@ -884,11 +881,11 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                                               fontWeight: FontWeight.w600,
                                               color: matched
                                                   ? Theme.of(
-                                                    context,
-                                                  ).colorScheme.primary
+                                                      context,
+                                                    ).colorScheme.primary
                                                   : Theme.of(
-                                                    context,
-                                                  ).colorScheme.error,
+                                                      context,
+                                                    ).colorScheme.error,
                                             ),
                                       ),
                                     ),
@@ -897,9 +894,9 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                                 const SizedBox(height: 4),
                                 Text(
                                   'Paid: ${MoneyCalculator.format(total)} of ${MoneyCalculator.format(amount)}',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .captionMuted,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.captionMuted,
                                 ),
                               ],
                             ),
@@ -1033,7 +1030,8 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                   Builder(
                     builder: (context) {
                       final readyToSave = _scope == ExpenseScope.team
-                          ? (_teamPaymentRows().isNotEmpty || _otherPayersTotal > 0) &&
+                          ? (_teamPaymentRows().isNotEmpty ||
+                                    _otherPayersTotal > 0) &&
                                 _participants.isNotEmpty
                           : _payerMemberId != null && _participants.isNotEmpty;
                       return FilledButton.icon(
@@ -1260,52 +1258,66 @@ class _OtherPayerRow extends StatelessWidget {
   final VoidCallback onAmountChanged;
 
   @override
-  Widget build(BuildContext context) => Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Expanded(
-        flex: 3,
-        child: DropdownButtonFormField<int>(
-          initialValue: members.any((m) => m.id == memberId)
-              ? memberId
-              : (members.isNotEmpty ? members.first.id : null),
-          decoration: const InputDecoration(
-            labelText: 'Who paid',
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          flex: 3,
+          child: DropdownButtonFormField<int>(
+            initialValue: members.any((m) => m.id == memberId)
+                ? memberId
+                : (members.isNotEmpty ? members.first.id : null),
             isDense: true,
+            isExpanded: true,
+            // Explicit colors so the selected payer and the floating label
+            // stay clearly readable on every form surface (never white).
+            style: TextStyle(
+              overflow: TextOverflow.ellipsis,
+              color: theme.colorScheme.onSurface,
+            ),
+            decoration: InputDecoration(
+              labelText: 'Who paid',
+              isDense: true,
+              labelStyle: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            items: [
+              for (final m in members)
+                DropdownMenuItem(value: m.id, child: Text(m.name)),
+            ],
+            onChanged: (v) {
+              if (v != null) onMemberChanged(v);
+            },
           ),
-          items: [
-            for (final m in members)
-              DropdownMenuItem(value: m.id, child: Text(m.name)),
-          ],
-          onChanged: (v) {
-            if (v != null) onMemberChanged(v);
-          },
         ),
-      ),
-      const SizedBox(width: AppSpacing.sm),
-      Expanded(
-        flex: 4,
-        child: AppMoneyField(
-          controller: controller,
-          label: 'Amount',
-          hintText: 'e.g. 800',
-          constraint: AppMoneyConstraint.requiredPositive,
-          onChanged: (_) => onAmountChanged(),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          flex: 4,
+          child: AppMoneyField(
+            controller: controller,
+            label: 'Amount',
+            hintText: 'e.g. 800',
+            constraint: AppMoneyConstraint.requiredPositive,
+            onChanged: (_) => onAmountChanged(),
+          ),
         ),
-      ),
-      SizedBox(
-        width: 36,
-        child: IconButton(
-          tooltip: 'Remove',
-          onPressed: onRemove,
-          icon: const Icon(Icons.close, size: 20),
-          color: Theme.of(context).colorScheme.error,
-          padding: EdgeInsets.zero,
-          visualDensity: VisualDensity.compact,
+        SizedBox(
+          width: 36,
+          child: IconButton(
+            tooltip: 'Remove',
+            onPressed: onRemove,
+            icon: const Icon(Icons.close, size: 20),
+            color: Theme.of(context).colorScheme.error,
+            padding: EdgeInsets.zero,
+            visualDensity: VisualDensity.compact,
+          ),
         ),
-      ),
-    ],
-  );
+      ],
+    );
+  }
 }
 
 class _TeamMultiPicker extends StatelessWidget {
@@ -1406,19 +1418,22 @@ class _TeamPayerRow extends StatelessWidget {
                   ),
                 ),
                 if (members.isEmpty)
-                  Text(
-                    'No members',
-                    style: theme.textTheme.captionMuted,
-                  ),
+                  Text('No members', style: theme.textTheme.captionMuted),
               ],
             ),
             const SizedBox(height: AppSpacing.xs),
             DropdownButtonFormField<int>(
               initialValue: selected,
               isDense: true,
-              decoration: const InputDecoration(
+              // Explicit colors keep the "Who paid for this team" label and
+              // its selected value readable on every surface (never white).
+              style: TextStyle(color: theme.colorScheme.onSurface),
+              decoration: InputDecoration(
                 labelText: 'Who paid for this team',
-                contentPadding: EdgeInsets.symmetric(
+                labelStyle: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.md,
                   vertical: AppSpacing.sm,
                 ),
@@ -1564,9 +1579,7 @@ class _ScopeOption extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Material(
-      color: selected
-          ? theme.colorScheme.primaryContainer.withAlpha(60)
-          : null,
+      color: selected ? theme.colorScheme.primaryContainer.withAlpha(60) : null,
       child: InkWell(
         onTap: onTap,
         child: Padding(
@@ -1591,16 +1604,14 @@ class _ScopeOption extends StatelessWidget {
                     Text(
                       label,
                       style: theme.textTheme.bodyMedium?.copyWith(
-                        fontWeight:
-                            selected ? FontWeight.w600 : FontWeight.w500,
+                        fontWeight: selected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
                         color: selected ? theme.colorScheme.primary : null,
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      description,
-                      style: theme.textTheme.captionMuted,
-                    ),
+                    Text(description, style: theme.textTheme.captionMuted),
                   ],
                 ),
               ),

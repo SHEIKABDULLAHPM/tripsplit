@@ -9,7 +9,6 @@ import 'package:tripsplit/features/funding/domain/funding_exception.dart';
 import 'package:tripsplit/features/funding/domain/funding_info.dart';
 import 'package:tripsplit/features/funding/domain/razorpay_checkout.dart';
 import 'package:tripsplit/features/funding/presentation/funding_checkout_screen.dart';
-import 'package:tripsplit/features/funding/presentation/funding_history_screen.dart';
 import 'package:tripsplit/features/funding/presentation/funding_result_screen.dart';
 import 'package:tripsplit/features/funding/presentation/funding_screen.dart';
 import 'package:tripsplit/features/funding/providers/funding_providers.dart';
@@ -45,10 +44,10 @@ class _FakeFundingRepository extends FundingRepository {
         FundingOrder(
           publicReference: 'TS_4242',
           type: type,
-          amountMinor: type == FundingType.future199 ? 19900 : 4900,
+          amountMinor: type == FundingType.future199 ? 4900 : 1900,
           currency: 'INR',
           status: FundingStatus.created,
-          termsVersion: termsVersion ?? '2026-09-01',
+          termsVersion: termsVersion ?? '2026-09-21',
           checkoutMode: 'simulated',
         );
   }
@@ -63,12 +62,12 @@ class _FakeFundingRepository extends FundingRepository {
         FundingOrder(
           publicReference: publicReference,
           type: FundingType.support49,
-          amountMinor: 4900,
+          amountMinor: 1900,
           currency: 'INR',
           status: outcome == 'success'
               ? FundingStatus.verified
               : FundingStatus.failed,
-          termsVersion: '2026-09-01',
+          termsVersion: '2026-09-21',
           checkoutMode: 'simulated',
           verifiedAt: outcome == 'success' ? '2026-09-01T10:00:00Z' : null,
         );
@@ -82,10 +81,10 @@ class _FakeFundingRepository extends FundingRepository {
         FundingOrder(
           publicReference: publicReference,
           type: FundingType.support49,
-          amountMinor: 4900,
+          amountMinor: 1900,
           currency: 'INR',
           status: FundingStatus.verified,
-          termsVersion: '2026-09-01',
+          termsVersion: '2026-09-21',
           checkoutMode: 'simulated',
           verifiedAt: '2026-09-01T10:00:00Z',
         );
@@ -109,10 +108,10 @@ class _FakeFundingRepository extends FundingRepository {
         FundingOrder(
           publicReference: publicReference,
           type: FundingType.support49,
-          amountMinor: 4900,
+          amountMinor: 1900,
           currency: 'INR',
           status: FundingStatus.paymentPending,
-          termsVersion: '2026-09-01',
+          termsVersion: '2026-09-21',
           checkoutMode: 'hosted',
         );
   }
@@ -166,10 +165,10 @@ FundingOrder _order(FundingStatus status, {String ref = 'TS_5'}) =>
     FundingOrder(
       publicReference: ref,
       type: FundingType.support49,
-      amountMinor: 4900,
+      amountMinor: 1900,
       currency: 'INR',
       status: status,
-      termsVersion: '2026-09-01',
+      termsVersion: '2026-09-21',
       checkoutMode: 'hosted',
       createdAt: '2026-09-01T09:30:00Z',
     );
@@ -177,10 +176,10 @@ FundingOrder _order(FundingStatus status, {String ref = 'TS_5'}) =>
 FundingOrder _hostedOrder() => const FundingOrder(
   publicReference: 'TS_777',
   type: FundingType.support49,
-  amountMinor: 4900,
+  amountMinor: 1900,
   currency: 'INR',
   status: FundingStatus.created,
-  termsVersion: '2026-09-01',
+  termsVersion: '2026-09-21',
   checkoutMode: 'hosted',
   keyId: 'rzp_test_key',
   orderId: 'order_777',
@@ -237,64 +236,6 @@ void main() {
     });
   });
 
-  group('FundingHistoryScreen', () {
-    late _FakeFundingRepository fake;
-
-    setUp(() => fake = _FakeFundingRepository());
-
-    Future<void> pump(WidgetTester tester) async {
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [fundingRepositoryProvider.overrideWithValue(fake)],
-          child: const MaterialApp(home: FundingHistoryScreen()),
-        ),
-      );
-      await tester.pumpAndSettle();
-    }
-
-    testWidgets('shows the empty state', (tester) async {
-      await pump(tester);
-      expect(find.text('No funding yet'), findsOneWidget);
-    });
-
-    testWidgets('lists orders with server amounts and status chips', (
-      tester,
-    ) async {
-      fake.history = [
-        _order(FundingStatus.verified),
-        _order(FundingStatus.failed, ref: 'TS_6'),
-      ];
-      await pump(tester);
-
-      expect(find.text('₹49.00'), findsNWidgets(2));
-      expect(find.text('VERIFIED'), findsOneWidget);
-      expect(find.text('FAILED'), findsOneWidget);
-      expect(find.text('TS_5'), findsOneWidget);
-      expect(find.text('TS_6'), findsOneWidget);
-    });
-
-    testWidgets('shows the offline message on a network failure', (
-      tester,
-    ) async {
-      final failing = _NetworkFailingRepository();
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [fundingRepositoryProvider.overrideWithValue(failing)],
-          child: const MaterialApp(home: FundingHistoryScreen()),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(
-        find.text(
-          'An internet connection is required to load funding '
-          'history.',
-        ),
-        findsOneWidget,
-      );
-    });
-  });
-
   group('FundingCheckoutScreen → FundingResultScreen', () {
     late _FakeFundingRepository fake;
     late ProviderContainer container;
@@ -305,7 +246,9 @@ void main() {
       container = ProviderContainer(
         overrides: [
           fundingRepositoryProvider.overrideWithValue(fake),
-          connectivityCheckerProvider.overrideWithValue(_FakeConnectedChecker()),
+          connectivityCheckerProvider.overrideWithValue(
+            _FakeConnectedChecker(),
+          ),
           fundingApiClientProvider.overrideWithValue(_FakeFundingApiClient()),
         ],
       );
@@ -360,7 +303,7 @@ void main() {
         await pump(tester);
 
         // Review shows the display amount only.
-        expect(find.text('₹49'), findsOneWidget);
+        expect(find.text('₹19'), findsOneWidget);
 
         await tester.tap(find.text('I accept the Funding Terms'));
         await tester.pumpAndSettle();
@@ -369,7 +312,7 @@ void main() {
 
         // Server amount is now authoritatively shown.
         expect(fake.createdTypes, ['SUPPORT_49']);
-        expect(find.text('₹49.00'), findsOneWidget);
+        expect(find.text('₹19.00'), findsOneWidget);
         expect(find.text('Sandbox checkout'), findsOneWidget);
 
         await tester.tap(find.text('Complete payment (simulated success)'));
@@ -455,7 +398,7 @@ void main() {
         expect(fake.createdTypes, ['SUPPORT_49']);
         expect(launcher.opened.single.keyId, 'rzp_test_key');
         expect(launcher.opened.single.orderId, 'order_777');
-        expect(launcher.opened.single.amountMinor, 4900);
+        expect(launcher.opened.single.amountMinor, 1900);
         expect(launcher.opened.single.currency, 'INR');
         expect(fake.verifyCalls, hasLength(1));
         expect(fake.verifyCalls.single.ref, 'TS_777');
@@ -547,17 +490,4 @@ void main() {
       );
     });
   });
-}
-
-class _NetworkFailingRepository extends FundingRepository {
-  _NetworkFailingRepository()
-    : super(FundingApiClient(baseUrl: 'http://funding-test.invalid'));
-
-  @override
-  Future<List<FundingOrder>> fetchHistory() async {
-    throw const FundingException(
-      FundingFailureKind.offline,
-      'An internet connection is required to load funding history.',
-    );
-  }
 }

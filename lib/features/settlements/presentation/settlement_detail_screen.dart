@@ -136,10 +136,11 @@ class SettlementDetailScreen extends ConsumerWidget {
       await ref.read(settlementRepositoryProvider).deleteById(settlementId);
       if (context.mounted) context.pop();
     } on AppException catch (e) {
-      if (context.mounted)
+      if (context.mounted) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text(e.message)));
+      }
     }
   }
 }

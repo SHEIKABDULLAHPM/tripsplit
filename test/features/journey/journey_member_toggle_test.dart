@@ -2,7 +2,6 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tripsplit/database/app_database.dart';
-import 'package:tripsplit/database/domain_mappers.dart';
 import 'package:tripsplit/features/journey/data/journey_repository_impl.dart';
 import 'package:tripsplit/features/journey/domain/journey_repository.dart';
 import 'package:tripsplit/features/teams/data/team_repository_impl.dart';
@@ -53,11 +52,7 @@ void main() {
       return loc.id;
     }
 
-    Future<int> seedSegment(
-      int tripId,
-      int startId,
-      int endId,
-    ) async {
+    Future<int> seedSegment(int tripId, int startId, int endId) async {
       await journeyRepository.addSegment(
         tripId,
         startLocationId: startId,
@@ -83,8 +78,9 @@ void main() {
       );
 
       var parts = await journeyRepository.getParticipations(tripId);
-      final bPart =
-          parts.firstWhere((p) => p.memberId == ids[1] && p.segmentId == segId);
+      final bPart = parts.firstWhere(
+        (p) => p.memberId == ids[1] && p.segmentId == segId,
+      );
       expect(bPart.participating, isFalse);
 
       // Re-enable B.
@@ -95,8 +91,9 @@ void main() {
       );
 
       parts = await journeyRepository.getParticipations(tripId);
-      final bPartAfter =
-          parts.firstWhere((p) => p.memberId == ids[1] && p.segmentId == segId);
+      final bPartAfter = parts.firstWhere(
+        (p) => p.memberId == ids[1] && p.segmentId == segId,
+      );
       expect(bPartAfter.participating, isTrue);
     });
 
@@ -110,10 +107,7 @@ void main() {
 
       // Initially all members participate (default).
       var parts = await journeyRepository.getParticipations(tripId);
-      expect(
-        parts.any((p) => p.memberId == ids[0] && p.participating),
-        isTrue,
-      );
+      expect(parts.any((p) => p.memberId == ids[0] && p.participating), isTrue);
 
       // Disable A.
       await journeyRepository.setParticipation(
@@ -123,8 +117,9 @@ void main() {
       );
 
       parts = await journeyRepository.getParticipations(tripId);
-      final aPart =
-          parts.firstWhere((p) => p.memberId == ids[0] && p.segmentId == segId);
+      final aPart = parts.firstWhere(
+        (p) => p.memberId == ids[0] && p.segmentId == segId,
+      );
       expect(aPart.participating, isFalse);
     });
 
@@ -175,20 +170,24 @@ void main() {
       );
 
       parts = await journeyRepository.getParticipations(tripId);
-      final aPart =
-          parts.firstWhere((p) => p.memberId == ids[0] && p.segmentId == segId);
+      final aPart = parts.firstWhere(
+        (p) => p.memberId == ids[0] && p.segmentId == segId,
+      );
       expect(aPart.participating, isTrue);
 
-      final bPart =
-          parts.firstWhere((p) => p.memberId == ids[1] && p.segmentId == segId);
+      final bPart = parts.firstWhere(
+        (p) => p.memberId == ids[1] && p.segmentId == segId,
+      );
       expect(bPart.participating, isTrue);
 
-      final cPart =
-          parts.firstWhere((p) => p.memberId == ids[2] && p.segmentId == segId);
+      final cPart = parts.firstWhere(
+        (p) => p.memberId == ids[2] && p.segmentId == segId,
+      );
       expect(cPart.participating, isTrue);
 
-      final dPart =
-          parts.firstWhere((p) => p.memberId == ids[3] && p.segmentId == segId);
+      final dPart = parts.firstWhere(
+        (p) => p.memberId == ids[3] && p.segmentId == segId,
+      );
       expect(dPart.participating, isFalse);
     });
 
@@ -209,16 +208,18 @@ void main() {
 
       // "Navigate away" by re-reading participations.
       final parts = await journeyRepository.getParticipations(tripId);
-      final aPart =
-          parts.firstWhere((p) => p.memberId == ids[0] && p.segmentId == segId);
+      final aPart = parts.firstWhere(
+        (p) => p.memberId == ids[0] && p.segmentId == segId,
+      );
       expect(aPart.participating, isFalse);
 
       // Also verify via stream.
       final streamParts = await journeyRepository
           .watchParticipations(tripId)
           .first;
-      final aPartStream =
-          streamParts.firstWhere((p) => p.memberId == ids[0] && p.segmentId == segId);
+      final aPartStream = streamParts.firstWhere(
+        (p) => p.memberId == ids[0] && p.segmentId == segId,
+      );
       expect(aPartStream.participating, isFalse);
     });
 
@@ -277,39 +278,44 @@ void main() {
         final bPart = parts.firstWhere(
           (p) => p.memberId == ids[1] && p.segmentId == segId,
         );
-        expect(bPart.participating, isFalse,
-            reason: 'State drifted on read $i');
+        expect(
+          bPart.participating,
+          isFalse,
+          reason: 'State drifted on read $i',
+        );
       }
     });
 
     // ── Scenario 7: Unrelated data not reloaded ──────────────────────────
 
-    test('Scenario 7: Team membership unaffected by participation toggle',
-        () async {
-      final (tripId, ids) = await seedTripWithMembers(['A', 'B', 'C']);
-      final loc1 = await seedLocation(tripId, 'Erode');
-      final loc2 = await seedLocation(tripId, 'Salem');
-      final segId = await seedSegment(tripId, loc1, loc2);
+    test(
+      'Scenario 7: Team membership unaffected by participation toggle',
+      () async {
+        final (tripId, ids) = await seedTripWithMembers(['A', 'B', 'C']);
+        final loc1 = await seedLocation(tripId, 'Erode');
+        final loc2 = await seedLocation(tripId, 'Salem');
+        final segId = await seedSegment(tripId, loc1, loc2);
 
-      // Set up a team.
-      final team = await teamRepository.createTeam(tripId, 'Team 1');
-      await teamRepository.addMember(teamId: team.id, memberId: ids[0]);
-      await teamRepository.addMember(teamId: team.id, memberId: ids[1]);
+        // Set up a team.
+        final team = await teamRepository.createTeam(tripId, 'Team 1');
+        await teamRepository.addMember(teamId: team.id, memberId: ids[0]);
+        await teamRepository.addMember(teamId: team.id, memberId: ids[1]);
 
-      final before = await teamRepository.getTeamMembers(team.id);
-      expect(before, hasLength(2));
+        final before = await teamRepository.getTeamMembers(team.id);
+        expect(before, hasLength(2));
 
-      // Toggle participation.
-      await journeyRepository.setParticipation(
-        memberId: ids[0],
-        segmentId: segId,
-        participating: false,
-      );
+        // Toggle participation.
+        await journeyRepository.setParticipation(
+          memberId: ids[0],
+          segmentId: segId,
+          participating: false,
+        );
 
-      // Team membership is unchanged.
-      final after = await teamRepository.getTeamMembers(team.id);
-      expect(after, hasLength(2));
-    });
+        // Team membership is unchanged.
+        final after = await teamRepository.getTeamMembers(team.id);
+        expect(after, hasLength(2));
+      },
+    );
 
     // ── Scenario 8: Existing expenses/settlements not corrupted ──────────
 

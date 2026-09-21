@@ -6,7 +6,6 @@ import '../features/expenses/presentation/expense_form_screen.dart';
 import '../features/expenses/presentation/expense_management_screen.dart';
 import '../features/funding/presentation/funding_checkout_screen.dart';
 import '../features/funding/presentation/funding_document_screen.dart';
-import '../features/funding/presentation/funding_history_screen.dart';
 import '../features/funding/presentation/funding_result_screen.dart';
 import '../features/funding/presentation/funding_screen.dart';
 import '../features/journey/presentation/journey_screen.dart';
@@ -41,12 +40,11 @@ abstract final class AppRoutes {
 
   // App-level funding routes (never trip-scoped; funding is isolated).
   static const String funding = '/funding';
-  static const String fundingHistory = '/funding/history';
-  static String fundingCheckout(String typeWire) => '/funding/checkout?type=$typeWire';
+  static String fundingCheckout(String typeWire) =>
+      '/funding/checkout?type=$typeWire';
   static String fundingResult(String reference) =>
       '/funding/result?ref=${Uri.encodeComponent(reference)}';
-  static String fundingDocument(String name) =>
-      '/funding/document?name=$name';
+  static String fundingDocument(String name) => '/funding/document?name=$name';
 
   static String trip(int tripId) => '/trip/$tripId';
   static String more(int tripId) => '/trip/$tripId/more';
@@ -141,14 +139,8 @@ abstract final class AppRouter {
         path: '/funding/result',
         name: 'funding-result',
         builder: (context, state) => FundingResultScreen(
-          publicReference:
-              state.uri.queryParameters['ref'] ?? '',
+          publicReference: state.uri.queryParameters['ref'] ?? '',
         ),
-      ),
-      GoRoute(
-        path: AppRoutes.fundingHistory,
-        name: 'funding-history',
-        builder: (context, state) => const FundingHistoryScreen(),
       ),
       GoRoute(
         path: '/funding/document',

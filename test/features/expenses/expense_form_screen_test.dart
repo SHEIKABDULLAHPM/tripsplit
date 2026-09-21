@@ -140,4 +140,61 @@ void main() {
 
     await unmount(tester);
   });
+
+  testWidgets('other-payer rows do not overflow on narrow screens', (
+    tester,
+  ) async {
+    // A narrow phone surface; previously the "Who paid" dropdown in each
+    // "Other people who paid" row overflowed its flex slot by up to ~27px.
+    await tester.binding.setSurfaceSize(const Size(360, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final tripId = await seedTripWithMembers();
+    await tester.pumpWidget(app(tripId));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Advanced options'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add another payer'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField).at(1), '3288.60');
+    await tester.pump();
+
+    expect(tester.takeException(), isNull);
+    await unmount(tester);
+  });
+
+  testWidgets('"Who paid" label and its selected text use visible themed '
+      'colors', (tester) async {
+    await useTallSurface(tester);
+    final tripId = await seedTripWithMembers();
+    await tester.pumpWidget(app(tripId));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Advanced options'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add another payer'));
+    await tester.pumpAndSettle();
+
+    final context = tester.element(find.byType(ExpenseFormScreen));
+    final scheme = Theme.of(context).colorScheme;
+
+    final dropdown = tester.widget<DropdownButtonFormField<int>>(
+      find.ancestor(
+        of: find.text('Who paid'),
+        matching: find.byType(DropdownButtonFormField<int>),
+      ),
+    );
+    final visibleOnSurface = scheme.onSurfaceVariant;
+    expect(dropdown.decoration.labelStyle?.color, visibleOnSurface);
+    expect(dropdown.decoration.labelStyle?.color, isNot(Colors.white));
+
+    // The selected payer value renders in the base text color — never white.
+    final selectedText = tester.element(find.text('Suganth').first);
+    final selectedColor = DefaultTextStyle.of(selectedText).style.color;
+    expect(selectedColor, isNot(Colors.white));
+
+    await unmount(tester);
+  });
 }

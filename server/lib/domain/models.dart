@@ -42,34 +42,33 @@ class FundingOrder {
     String? gatewayOrderId,
     String? verifiedAt,
     String? updatedAt,
-  }) =>
-      FundingOrder(
-        publicReference: publicReference,
-        fundingType: fundingType,
-        amountMinor: amountMinor,
-        currency: currency,
-        status: status ?? this.status,
-        termsVersion: termsVersion,
-        clientIp: clientIp,
-        createdAt: createdAt,
-        acceptedAt: acceptedAt,
-        gatewayOrderId: gatewayOrderId ?? this.gatewayOrderId,
-        idempotencyKey: idempotencyKey,
-        updatedAt: updatedAt ?? this.updatedAt,
-        verifiedAt: verifiedAt ?? this.verifiedAt,
-      );
+  }) => FundingOrder(
+    publicReference: publicReference,
+    fundingType: fundingType,
+    amountMinor: amountMinor,
+    currency: currency,
+    status: status ?? this.status,
+    termsVersion: termsVersion,
+    clientIp: clientIp,
+    createdAt: createdAt,
+    acceptedAt: acceptedAt,
+    gatewayOrderId: gatewayOrderId ?? this.gatewayOrderId,
+    idempotencyKey: idempotencyKey,
+    updatedAt: updatedAt ?? this.updatedAt,
+    verifiedAt: verifiedAt ?? this.verifiedAt,
+  );
 
   Map<String, Object?> toJson() => {
-        'publicReference': publicReference,
-        'fundingType': fundingType.wire,
-        'amountMinor': amountMinor,
-        'currency': currency,
-        'status': status.wire,
-        'termsVersion': termsVersion,
-        'acceptedAt': acceptedAt,
-        'createdAt': createdAt,
-        'verifiedAt': verifiedAt,
-      };
+    'publicReference': publicReference,
+    'fundingType': fundingType.wire,
+    'amountMinor': amountMinor,
+    'currency': currency,
+    'status': status.wire,
+    'termsVersion': termsVersion,
+    'acceptedAt': acceptedAt,
+    'createdAt': createdAt,
+    'verifiedAt': verifiedAt,
+  };
 }
 
 /// A payment record captured from a gateway event.

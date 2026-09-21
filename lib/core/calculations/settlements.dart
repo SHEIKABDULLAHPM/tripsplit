@@ -96,9 +96,7 @@ abstract final class SettlementCalculator {
 
     final sharesByExpense = <int, List<ExpenseShare>>{};
     for (final share in shares) {
-      sharesByExpense
-          .putIfAbsent(share.expenseId, () => [])
-          .add(share);
+      sharesByExpense.putIfAbsent(share.expenseId, () => []).add(share);
     }
 
     final memberToTeams = <int, Set<int>>{};
@@ -124,7 +122,8 @@ abstract final class SettlementCalculator {
       final expensePayments = paymentsByExpense[expense.id] ?? const [];
       final expenseShares = sharesByExpense[expense.id] ?? const [];
 
-      if (expensePayments.length <= 1 || !_hasAllocationTeams(expensePayments)) {
+      if (expensePayments.length <= 1 ||
+          !_hasAllocationTeams(expensePayments)) {
         _allocateByGlobalNetting(
           expense: expense,
           payments: expensePayments,
@@ -190,11 +189,13 @@ abstract final class SettlementCalculator {
       final credit = creditors[ci].value;
       final amount = math.min(debt, credit);
       if (amount > 0) {
-        suggestions.add(SettlementSuggestion(
-          fromMemberId: debtors[di].key,
-          toMemberId: creditors[ci].key,
-          minor: amount,
-        ));
+        suggestions.add(
+          SettlementSuggestion(
+            fromMemberId: debtors[di].key,
+            toMemberId: creditors[ci].key,
+            minor: amount,
+          ),
+        );
       }
       debtors[di] = MapEntry(debtors[di].key, debtors[di].value + amount);
       creditors[ci] = MapEntry(creditors[ci].key, creditors[ci].value - amount);
@@ -226,16 +227,14 @@ abstract final class SettlementCalculator {
       }
     }
     for (final share in shares) {
-      nets[share.memberId] =
-          (nets[share.memberId] ?? 0) - share.shareMinor;
+      nets[share.memberId] = (nets[share.memberId] ?? 0) - share.shareMinor;
     }
     for (final settlement in settlements) {
       final paid = settlement.amountPaidMinor;
       if (paid <= 0) continue;
       nets[settlement.fromMemberId] =
           (nets[settlement.fromMemberId] ?? 0) + paid;
-      nets[settlement.toMemberId] =
-          (nets[settlement.toMemberId] ?? 0) - paid;
+      nets[settlement.toMemberId] = (nets[settlement.toMemberId] ?? 0) - paid;
     }
     return nets;
   }
@@ -274,12 +273,14 @@ abstract final class SettlementCalculator {
       final credit = creditors[ci].value;
       final amount = math.min(debt, credit);
       if (amount > 0) {
-        obligations.add(_Obligation(
-          fromMemberId: debtors[di].key,
-          toMemberId: creditors[ci].key,
-          amountMinor: amount,
-          expenseId: expense.id,
-        ));
+        obligations.add(
+          _Obligation(
+            fromMemberId: debtors[di].key,
+            toMemberId: creditors[ci].key,
+            amountMinor: amount,
+            expenseId: expense.id,
+          ),
+        );
       }
       // Decrement nets
       debtors[di] = MapEntry(debtors[di].key, debtors[di].value + amount);
@@ -346,11 +347,8 @@ abstract final class SettlementCalculator {
       final candidates = sameTeamCoverers.isNotEmpty
           ? [...sameTeamCoverers, ...genericPayers]
           : payers
-              .map((p) => (
-                memberId: p.memberId,
-                paidAmount: p.paidAmount,
-              ))
-              .toList();
+                .map((p) => (memberId: p.memberId, paidAmount: p.paidAmount))
+                .toList();
       // Merge duplicate entries for the same payer (a payer may fund several
       // of the participant's teams, or join in via both a team and a generic
       // payment); their total outlay is the correct cover weight.
@@ -412,9 +410,8 @@ abstract final class SettlementCalculator {
     required int expenseId,
     required List<_Obligation> obligations,
   }) {
-    final working = <({int memberId, int paidAmount})>[
-      ...coverers,
-    ]..sort((a, b) => a.memberId.compareTo(b.memberId));
+    final working = <({int memberId, int paidAmount})>[...coverers]
+      ..sort((a, b) => a.memberId.compareTo(b.memberId));
     final totalPaid = working.fold<int>(0, (sum, c) => sum + c.paidAmount);
     if (totalPaid <= 0) return;
 
@@ -433,12 +430,14 @@ abstract final class SettlementCalculator {
 
     for (var i = 0; i < working.length; i++) {
       if (amounts[i] <= 0) continue;
-      obligations.add(_Obligation(
-        fromMemberId: fromMemberId,
-        toMemberId: working[i].memberId,
-        amountMinor: amounts[i],
-        expenseId: expenseId,
-      ));
+      obligations.add(
+        _Obligation(
+          fromMemberId: fromMemberId,
+          toMemberId: working[i].memberId,
+          amountMinor: amounts[i],
+          expenseId: expenseId,
+        ),
+      );
     }
   }
 
@@ -454,14 +453,15 @@ abstract final class SettlementCalculator {
         final byValue = b.value.compareTo(a.value);
         return byValue != 0 ? byValue : a.key.compareTo(b.key);
       });
-    final underpaid = nets.entries
-        .where((e) => e.value < 0)
-        .map((e) => MapEntry(e.key, -e.value))
-        .toList()
-      ..sort((a, b) {
-        final byValue = b.value.compareTo(a.value);
-        return byValue != 0 ? byValue : a.key.compareTo(b.key);
-      });
+    final underpaid =
+        nets.entries
+            .where((e) => e.value < 0)
+            .map((e) => MapEntry(e.key, -e.value))
+            .toList()
+          ..sort((a, b) {
+            final byValue = b.value.compareTo(a.value);
+            return byValue != 0 ? byValue : a.key.compareTo(b.key);
+          });
 
     var oi = 0;
     var ui = 0;
@@ -470,12 +470,14 @@ abstract final class SettlementCalculator {
       final deficit = underpaid[ui].value;
       final amount = math.min(excess, deficit);
       if (amount > 0) {
-        obligations.add(_Obligation(
-          fromMemberId: underpaid[ui].key,
-          toMemberId: overpaid[oi].key,
-          amountMinor: amount,
-          expenseId: expenseId,
-        ));
+        obligations.add(
+          _Obligation(
+            fromMemberId: underpaid[ui].key,
+            toMemberId: overpaid[oi].key,
+            amountMinor: amount,
+            expenseId: expenseId,
+          ),
+        );
       }
       overpaid[oi] = MapEntry(overpaid[oi].key, excess - amount);
       underpaid[ui] = MapEntry(underpaid[ui].key, deficit - amount);

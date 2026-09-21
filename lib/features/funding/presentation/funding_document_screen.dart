@@ -36,35 +36,39 @@ class FundingDocumentScreen extends StatelessWidget {
                   vertical: AppSpacing.screenVertical,
                 ),
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.errorContainer.withValues(
-                        alpha: 0.4,
-                      ),
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.warning_amber_rounded,
-                          size: 20,
-                          color: theme.colorScheme.onErrorContainer,
+                  if (doc.draft) ...[
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.errorContainer.withValues(
+                          alpha: 0.4,
                         ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Expanded(
-                          child: Text(
-                            'DRAFT DOCUMENT — informational only. Not final '
-                            'legal advice.',
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              color: theme.colorScheme.onErrorContainer,
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusSm,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.warning_amber_rounded,
+                            size: 20,
+                            color: theme.colorScheme.onErrorContainer,
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: Text(
+                              'DRAFT DOCUMENT — informational only. Not '
+                              'final legal advice.',
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                color: theme.colorScheme.onErrorContainer,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
                   Text(doc.title, style: theme.textTheme.screenTitle),
                   const SizedBox(height: AppSpacing.xs),
                   Text(

@@ -4,8 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tripsplit/app/app.dart';
+import 'package:tripsplit/app/widgets/help_support_popup.dart';
 import 'package:tripsplit/database/app_database.dart';
 import 'package:tripsplit/injection/database_providers.dart';
+
+/// Reports the Help & Support popup as already shown so startup tests are not
+/// blocked by the app-open popup.
+class _ShownHelpSupportPopupFlag extends HelpSupportPopupFlag {
+  @override
+  bool build() => true;
+}
 
 void main() {
   group('TripSplit app', () {
@@ -15,6 +23,9 @@ void main() {
           overrides: [
             appDatabaseProvider.overrideWithValue(
               AppDatabase.forTesting(NativeDatabase.memory()),
+            ),
+            helpSupportPopupFlagProvider.overrideWith(
+              _ShownHelpSupportPopupFlag.new,
             ),
           ],
           child: const TripSplitApp(),

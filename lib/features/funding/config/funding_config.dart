@@ -15,7 +15,7 @@ abstract final class FundingConfig {
 
   /// Terms version shipped with this build (must match the server's
   /// CURRENT_TERMS_VERSION).
-  static const String currentTermsVersion = '2026-09-01';
+  static const String currentTermsVersion = '2026-09-21';
 
   static const String contactEmail = 'support@tripsplit.in';
 

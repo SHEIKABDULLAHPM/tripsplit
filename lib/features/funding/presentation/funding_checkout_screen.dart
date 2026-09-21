@@ -56,13 +56,15 @@ class _FundingCheckoutScreenState extends ConsumerState<FundingCheckoutScreen> {
       // Proactive connectivity check: first verify the device has a network
       // connection, then verify the funding server is actually reachable.
       // This catches both offline and server-not-running cases early.
-      final deviceOnline = await ref.read(connectivityCheckerProvider).hasConnection();
+      final deviceOnline = await ref
+          .read(connectivityCheckerProvider)
+          .hasConnection();
       if (!deviceOnline) {
         fundingLogError('Device has no network connection');
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text(fundingRequiresInternet)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text(fundingRequiresInternet)));
         return;
       }
       fundingLog('Device has network, checking server reachability...');
@@ -82,9 +84,11 @@ class _FundingCheckoutScreenState extends ConsumerState<FundingCheckoutScreen> {
         _type,
         idempotencyKey: _idempotencyKey,
       );
-      fundingLog('Order created: ${order.publicReference} '
-          'status=${order.status.wire} checkoutMode=${order.checkoutMode} '
-          'orderId=${order.orderId} keyId=${order.keyId}');
+      fundingLog(
+        'Order created: ${order.publicReference} '
+        'status=${order.status.wire} checkoutMode=${order.checkoutMode} '
+        'orderId=${order.orderId} keyId=${order.keyId}',
+      );
       if (!mounted) return;
       setState(() {
         _order = order;
@@ -116,8 +120,10 @@ class _FundingCheckoutScreenState extends ConsumerState<FundingCheckoutScreen> {
     _launcher = launcher;
     launcher.clear();
     if (keyId == null || keyId.isEmpty || orderId == null || orderId.isEmpty) {
-      fundingLogError('Checkout could not be started: keyId or orderId is '
-          'null/empty');
+      fundingLogError(
+        'Checkout could not be started: keyId or orderId is '
+        'null/empty',
+      );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Checkout could not be started. Please try again.'),
