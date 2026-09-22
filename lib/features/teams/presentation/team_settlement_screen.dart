@@ -378,9 +378,7 @@ class TeamSettlementScreen extends ConsumerWidget {
     final memberIds = (<int>{
       ...paidByMember.keys,
       ...shareByMember.keys,
-    }.intersection(teamMemberIds))
-        .toList()
-      ..sort();
+    }.intersection(teamMemberIds)).toList()..sort();
 
     return [
       for (final memberId in memberIds) ...[

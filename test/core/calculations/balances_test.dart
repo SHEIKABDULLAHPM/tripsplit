@@ -230,9 +230,7 @@ void main() {
           contributions: [contribution(1, 73080), contribution(2, 10000)],
           expenses: [expense(1, 1, 73080)],
           shares: [share(1, 1, 36540), share(1, 2, 36540)],
-          settlements: [
-            settlement(1, 2, 1, 36540, paidMinor: 20000),
-          ],
+          settlements: [settlement(1, 2, 1, 36540, paidMinor: 20000)],
           postSettlementOutstanding: 16540,
         );
 
@@ -267,8 +265,11 @@ void main() {
       );
 
       for (final member in result.members) {
-        expect(member.effectiveNetPosition, 0,
-            reason: 'debt of member ${member.memberId} cleared after payment');
+        expect(
+          member.effectiveNetPosition,
+          0,
+          reason: 'debt of member ${member.memberId} cleared after payment',
+        );
         expect(member.amountToPay, 0);
         expect(member.amountToReceive, 0);
         expect(member.netLabel, 'Balanced');

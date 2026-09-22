@@ -80,10 +80,9 @@ class TripView {
   /// settlement screen and the settlement plan; per-member "Owes/Receives"
   /// figures everywhere must read from here so recorded payments always reduce
   /// what a member still owes.
-  int effectiveNetPositionOf(int memberId) =>
-      balances.members
-          .where((m) => m.memberId == memberId)
-          .fold<int>(0, (sum, m) => sum + m.effectiveNetPosition);
+  int effectiveNetPositionOf(int memberId) => balances.members
+      .where((m) => m.memberId == memberId)
+      .fold<int>(0, (sum, m) => sum + m.effectiveNetPosition);
 
   int contributionTotalFor(int memberId) => contributions
       .where((c) => c.memberId == memberId)

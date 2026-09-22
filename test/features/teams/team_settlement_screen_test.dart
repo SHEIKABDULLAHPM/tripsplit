@@ -75,8 +75,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    Card cardWith(String text) =>
-        tester.widget<Card>(find.ancestor(of: find.text(text), matching: find.byType(Card)).first);
+    Card cardWith(String text) => tester.widget<Card>(
+      find.ancestor(of: find.text(text), matching: find.byType(Card)).first,
+    );
     Finder inCard(Card card, String text) =>
         find.descendant(of: find.byWidget(card), matching: find.text(text));
 
@@ -85,13 +86,13 @@ void main() {
     expect(inCard(cardWith('Ben'), 'Ben'), findsWidgets);
 
     // The payer from Team Dhar must not show up on Sheik Team's breakdown.
-    expect(find.descendant(
-      of: find.byType(Card),
-      matching: find.text('Dhar'),
-    ), findsNothing);
-    expect(find.descendant(
-      of: find.byType(Card),
-      matching: find.text('Di'),
-    ), findsNothing);
+    expect(
+      find.descendant(of: find.byType(Card), matching: find.text('Dhar')),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: find.byType(Card), matching: find.text('Di')),
+      findsNothing,
+    );
   });
 }

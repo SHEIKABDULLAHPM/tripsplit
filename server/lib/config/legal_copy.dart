@@ -47,9 +47,9 @@ class LegalBundle {
     required this.documents,
   });
 
-/// The effective, current legal bundle.
+  /// The effective, current legal bundle.
   static LegalBundle defaults() => const LegalBundle(
-        termsVersion: '2026-09-21',
+    termsVersion: '2026-09-21',
     jurisdiction: 'India',
     contactEmail: 'tripsplit.me@gmail.com',
     documents: [
@@ -57,8 +57,8 @@ class LegalBundle {
         name: 'overview',
         title: 'Funding Overview',
         jurisdiction: 'India',
-effectiveVersion: '2026-09-21',
-            draft: false,
+        effectiveVersion: '2026-09-21',
+        draft: false,
         sections: [
           LegalSection(
             'What this is',
@@ -81,8 +81,8 @@ effectiveVersion: '2026-09-21',
         name: 'terms',
         title: 'Funding Terms',
         jurisdiction: 'India',
-effectiveVersion: '2026-09-21',
-            draft: false,
+        effectiveVersion: '2026-09-21',
+        draft: false,
         sections: [
           LegalSection(
             '1. Agreement',
@@ -107,8 +107,8 @@ effectiveVersion: '2026-09-21',
         name: 'privacy',
         title: 'Privacy Notice',
         jurisdiction: 'India',
-effectiveVersion: '2026-09-21',
-            draft: false,
+        effectiveVersion: '2026-09-21',
+        draft: false,
         sections: [
           LegalSection(
             '1. Data collected',
@@ -134,8 +134,8 @@ effectiveVersion: '2026-09-21',
         name: 'refund',
         title: 'Refund Policy',
         jurisdiction: 'India',
-effectiveVersion: '2026-09-21',
-            draft: false,
+        effectiveVersion: '2026-09-21',
+        draft: false,
         sections: [
           LegalSection(
             '1. Contributions are final',
@@ -160,8 +160,8 @@ effectiveVersion: '2026-09-21',
         name: 'payment',
         title: 'Payment Information',
         jurisdiction: 'India',
-effectiveVersion: '2026-09-21',
-            draft: false,
+        effectiveVersion: '2026-09-21',
+        draft: false,
         sections: [
           LegalSection(
             '1. Currency',
