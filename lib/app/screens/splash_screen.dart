@@ -63,7 +63,7 @@ class _SplashScreenState extends State<SplashScreen> {
               child: LayoutBuilder(
                 builder: (context, constraints) => SvgPicture.asset(
                   tripSplitLogoSvg,
-                  // Cap width so the 4:3 artwork never overruns tall or
+                  // Cap width so the square logo never overruns tall or
                   // narrow screens; height follows the intrinsic ratio.
                   width: (constraints.maxWidth * 0.84).clamp(0, 460),
                 ),

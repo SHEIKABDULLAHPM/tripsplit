@@ -5,12 +5,8 @@ import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
 
 /// Official TripSplit logo artwork.
-///
-/// The full asset (symbol + wordmark + tagline, on white) is used for hero
-/// brand moments like the splash screen. The symbol-only variant is used
-/// wherever just the mark fits, e.g. app bars and compact lockups.
-const String tripSplitLogoSvg = 'assets/logo/tripsplit-logo.svg';
-const String tripSplitSymbolSvg = 'assets/logo/tripsplit-symbol.svg';
+const String tripSplitLogoSvg = 'assets/logo/tripsplitlogo.svg';
+const String tripSplitSymbolSvg = 'assets/logo/tripsplitlogo.svg';
 
 /// Wordmark colors from the official logotype ("Trip" navy, "Split" blue).
 const Color _tripColor = Color(0xFF142B4A);
