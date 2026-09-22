@@ -1425,6 +1425,7 @@ class _TeamPayerRow extends StatelessWidget {
             DropdownButtonFormField<int>(
               initialValue: selected,
               isDense: true,
+              isExpanded: true,
               // Explicit colors keep the "Who paid for this team" label and
               // its selected value readable on every surface (never white).
               style: TextStyle(color: theme.colorScheme.onSurface),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tripsplit/database/app_database.dart';
 import 'package:tripsplit/features/expenses/presentation/expense_form_screen.dart';
+import 'package:tripsplit/features/teams/data/team_repository_impl.dart';
 import 'package:tripsplit/injection/database_providers.dart';
 
 void main() {
@@ -194,6 +195,37 @@ void main() {
     final selectedText = tester.element(find.text('Suganth').first);
     final selectedColor = DefaultTextStyle.of(selectedText).style.color;
     expect(selectedColor, isNot(Colors.white));
+
+    await unmount(tester);
+  });
+
+  testWidgets('team scope payer rows do not overflow on narrow screens', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(360, 1600));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final tripId = await seedTripWithMembers();
+    final teamRepo = TeamRepositoryImpl(db);
+    final team = await teamRepo.createTeam(tripId, 'Car 1');
+    final members = await db.memberDao.getByTrip(tripId);
+    await teamRepo.addMember(teamId: team.id, memberId: members.first.id);
+    await teamRepo.addMember(teamId: team.id, memberId: members.last.id);
+
+    await tester.pumpWidget(app(tripId));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Team'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilterChip, 'Car 1'));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.byType(TextFormField).at(1), '3288.60');
+    await tester.pump();
+
+    expect(find.text('Who paid, per team'), findsOneWidget);
+    expect(find.text('Who paid for this team'), findsOneWidget);
+    expect(tester.takeException(), isNull);
 
     await unmount(tester);
   });

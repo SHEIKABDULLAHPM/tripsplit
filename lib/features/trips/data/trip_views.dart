@@ -74,6 +74,17 @@ class TripView {
         Member(id: id, tripId: 0, name: '?', createdAt: DateTime(2024)),
   );
 
+  /// Settlement-aware net position for [memberId]: group outlay minus expense
+  /// share, adjusted for cash already transferred through settlements. This is
+  /// the single authoritative source used by the Balances screen, the team
+  /// settlement screen and the settlement plan; per-member "Owes/Receives"
+  /// figures everywhere must read from here so recorded payments always reduce
+  /// what a member still owes.
+  int effectiveNetPositionOf(int memberId) =>
+      balances.members
+          .where((m) => m.memberId == memberId)
+          .fold<int>(0, (sum, m) => sum + m.effectiveNetPosition);
+
   int contributionTotalFor(int memberId) => contributions
       .where((c) => c.memberId == memberId)
       .fold<int>(0, (sum, c) => sum + c.amountMinor);

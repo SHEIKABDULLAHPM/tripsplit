@@ -219,5 +219,60 @@ void main() {
         throwsArgumentError,
       );
     });
+
+    test(
+      'effectiveNetPosition reduces by settlements the way the plan does',
+      () {
+        // Ana (member 1) fronts 730.80 for two equal 365.40 shares. Ben
+        // (member 2) owes Ana 365.40. Ben pays 200.00, so 165.40 remains.
+        final result = BalanceCalculator.calculate(
+          tripBudgetMinor: 100000,
+          contributions: [contribution(1, 73080), contribution(2, 10000)],
+          expenses: [expense(1, 1, 73080)],
+          shares: [share(1, 1, 36540), share(1, 2, 36540)],
+          settlements: [
+            settlement(1, 2, 1, 36540, paidMinor: 20000),
+          ],
+          postSettlementOutstanding: 16540,
+        );
+
+        final ana = result.members.firstWhere((m) => m.memberId == 1);
+        final ben = result.members.firstWhere((m) => m.memberId == 2);
+
+        expect(ana.netPosition, 36540);
+        // Ana was paid 200.00, so she is owed 165.40, not 565.40.
+        expect(ana.effectiveNetPosition, 16540);
+        expect(ana.amountToReceive, 16540);
+        expect(ana.amountToPay, 0);
+        expect(ana.netLabel, 'Receives');
+
+        expect(ben.netPosition, -36540);
+        expect(ben.effectiveNetPosition, -16540);
+        expect(ben.amountToPay, 16540);
+        expect(ben.amountToReceive, 0);
+        expect(ben.netLabel, 'Owes');
+
+        expect(result.outstandingMinor, 16540);
+      },
+    );
+
+    test('fully settled members show balanced, not inflated owes/receives', () {
+      final result = BalanceCalculator.calculate(
+        tripBudgetMinor: 100000,
+        contributions: [contribution(1, 50000), contribution(2, 10000)],
+        expenses: [expense(1, 1, 10000)],
+        shares: [share(1, 1, 5000), share(1, 2, 5000)],
+        settlements: [settlement(1, 2, 1, 5000, paidMinor: 5000)],
+        postSettlementOutstanding: 0,
+      );
+
+      for (final member in result.members) {
+        expect(member.effectiveNetPosition, 0,
+            reason: 'debt of member ${member.memberId} cleared after payment');
+        expect(member.amountToPay, 0);
+        expect(member.amountToReceive, 0);
+        expect(member.netLabel, 'Balanced');
+      }
+    });
   });
 }

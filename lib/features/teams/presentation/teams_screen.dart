@@ -503,6 +503,10 @@ class _TeamCardState extends ConsumerState<_TeamCard> {
                       name: widget.tripView.memberById(memberId).name,
                       share: shareByMember[memberId] ?? 0,
                       paid: paidByMember[memberId] ?? 0,
+                      // Settlement-aware net from the same authoritative
+                      // source as the Settlement and Teams settlement screens,
+                      // so the chip clears once nothing is outstanding.
+                      net: widget.tripView.effectiveNetPositionOf(memberId),
                     ),
                 ],
               ),
@@ -576,16 +580,20 @@ class _TeamMemberRow extends StatelessWidget {
     required this.name,
     required this.share,
     required this.paid,
+    required this.net,
   });
 
   final String name;
   final int share;
   final int paid;
 
+  /// Settlement-aware net position (share and paid columns above stay raw
+  /// expense figures; only this status reflects recorded settlements).
+  final int net;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final net = paid - share;
     final tone = net > 0
         ? StatusTone.success
         : net < 0

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../app/theme/app_financial_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_text_styles.dart';
 import '../../../core/calculations/balances.dart';
 import '../../../core/calculations/money.dart';
-import '../../../core/calculations/settlements.dart';
 import '../../../core/widgets/app_section_header.dart';
 import '../../../core/widgets/async_value_view.dart';
 import '../../../core/widgets/member_avatar.dart';
@@ -42,7 +40,6 @@ class TeamSettlementScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final view = ref.watch(tripViewProvider(tripId));
     final teams = ref.watch(teamsForTripProvider(tripId));
-    final financial = context.financial;
 
     return Scaffold(
       appBar: AppBar(title: Text(teamName)),
@@ -228,9 +225,7 @@ class TeamSettlementScreen extends ConsumerWidget {
                                       ),
                                       const SizedBox(width: 6),
                                       Text(
-                                        isFullyPaid
-                                            ? 'Fully paid'
-                                            : 'Remaining: ${MoneyCalculator.format(teamRemaining)}',
+                                        'Remaining: ${MoneyCalculator.format(teamRemaining)}',
                                         style: theme.textTheme.bodyMedium
                                             ?.copyWith(
                                               fontWeight: FontWeight.w600,
@@ -302,8 +297,7 @@ class TeamSettlementScreen extends ConsumerWidget {
                       tripView: tripView,
                       paidByMember: paidByMember,
                       shareByMember: shareByMember,
-                      settlementPlan: settlementPlan,
-                      financial: financial,
+                      teamMemberIds: teamMemberIds,
                       theme: theme,
                     ),
 
@@ -375,14 +369,18 @@ class TeamSettlementScreen extends ConsumerWidget {
     required TripView tripView,
     required Map<int, int> paidByMember,
     required Map<int, int> shareByMember,
-    required SettlementResult settlementPlan,
-    required AppFinancialColors financial,
+    required Set<int> teamMemberIds,
     required ThemeData theme,
   }) {
-    final memberIds = <int>{
+    // Only this team's members belong in the per-member breakdown. A payer
+    // from another team who fronted part of a linked multi-team expense shows
+    // up in paidByMember, but must not appear as a member of THIS team.
+    final memberIds = (<int>{
       ...paidByMember.keys,
       ...shareByMember.keys,
-    }.toList()..sort();
+    }.intersection(teamMemberIds))
+        .toList()
+      ..sort();
 
     return [
       for (final memberId in memberIds) ...[
@@ -390,8 +388,11 @@ class TeamSettlementScreen extends ConsumerWidget {
           name: tripView.memberById(memberId).name,
           paid: paidByMember[memberId] ?? 0,
           share: shareByMember[memberId] ?? 0,
-          netPosition:
-              (paidByMember[memberId] ?? 0) - (shareByMember[memberId] ?? 0),
+          // Settlement-aware net (same authoritative source as the Balances
+          // screen and the summary card above). Recorded settlements reduce
+          // what a member still owes so the per-member "Owes" status clears
+          // once the team is fully paid off.
+          netPosition: tripView.effectiveNetPositionOf(memberId),
         ),
         const SizedBox(height: AppSpacing.sm),
       ],

@@ -290,10 +290,16 @@ abstract final class BalanceCalculator {
     if (hasSettlementResult) {
       outstanding = postSettlementOutstanding;
     } else {
-      // Compute per-member net and sum the debts (members who owe money).
+      // Compute per-member post-settlement net and sum the debts (members who
+      // owe money). A settlement reduces the payer's debt and the receiver's
+      // credit, exactly as the settlement engine's remaining nets do.
       var debtSum = 0;
       for (final id in memberIds) {
-        final net = (groupOutlayByMember[id] ?? 0) - (shareByMember[id] ?? 0);
+        final net =
+            (groupOutlayByMember[id] ?? 0) -
+            (shareByMember[id] ?? 0) +
+            (paidOutByMember[id] ?? 0) -
+            (receivedByMember[id] ?? 0);
         if (net < 0) debtSum += -net;
       }
       outstanding = debtSum;
@@ -321,8 +327,8 @@ abstract final class BalanceCalculator {
             effectiveNetPosition:
                 (groupOutlayByMember[id] ?? 0) -
                 (shareByMember[id] ?? 0) +
-                (receivedByMember[id] ?? 0) -
-                (paidOutByMember[id] ?? 0),
+                (paidOutByMember[id] ?? 0) -
+                (receivedByMember[id] ?? 0),
           ),
       ],
     );

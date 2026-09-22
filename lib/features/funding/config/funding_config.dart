@@ -17,7 +17,7 @@ abstract final class FundingConfig {
   /// CURRENT_TERMS_VERSION).
   static const String currentTermsVersion = '2026-09-21';
 
-  static const String contactEmail = 'support@tripsplit.in';
+  static const String contactEmail = 'tripsplit.me@gmail.com';
 
   /// The funding service base URL.
   static String get apiBaseUrl {

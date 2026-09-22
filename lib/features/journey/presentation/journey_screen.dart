@@ -89,6 +89,11 @@ class _JourneyBodyState extends ConsumerState<_JourneyBody> {
   /// then cleared when the stream delivers the authoritative data.
   final Map<(int, int), bool> _participationOverrides = {};
 
+  /// Serializes participation persistence so rapid toggles are written in tap
+  /// order. The repository call is async; a naive fire-and-forget write can
+  /// interleave and persist an earlier toggle's intent last.
+  Future<void> _persistQueue = Future<void>.value();
+
   @override
   void didUpdateWidget(covariant _JourneyBody oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -235,7 +240,19 @@ class _JourneyBodyState extends ConsumerState<_JourneyBody> {
                   style: Theme.of(sheetContext).textTheme.captionMuted,
                 ),
                 const SizedBox(height: 12),
-                Flexible(
+                // Bound the list to a fraction of the sheet's viewport so it
+                // scrolls internally instead of growing to content height and
+                // pushing every later toggle off-screen (where rows overlap
+                // the screen edge and get miscast/mis-tapped). With large
+                // groups the picker stays usable and each row gets a clean,
+                // single-tap toggle.
+                ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxHeight:
+                        (MediaQuery.sizeOf(sheetContext).height -
+                            MediaQuery.viewInsetsOf(sheetContext).bottom) *
+                        0.55,
+                  ),
                   child: ListView(
                     shrinkWrap: true,
                     children: [
@@ -259,11 +276,15 @@ class _JourneyBodyState extends ConsumerState<_JourneyBody> {
                                   value;
                             });
                             setSheetState(() {});
-                            _persistParticipation(
-                              view.segment.id,
-                              member.id,
-                              value,
-                            );
+                            _persistQueue = _persistQueue
+                                .then(
+                                  (_) => _persistParticipation(
+                                    view.segment.id,
+                                    member.id,
+                                    value,
+                                  ),
+                                )
+                                .catchError((Object _) {});
                           },
                         ),
                     ],

@@ -1,7 +1,9 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:tripsplit/core/calculations/settlements.dart';
 import 'package:tripsplit/core/errors/app_exception.dart';
 import 'package:tripsplit/database/app_database.dart';
+import 'package:tripsplit/database/domain_mappers.dart';
 import 'package:tripsplit/features/expenses/data/expense_repository_impl.dart';
 import 'package:tripsplit/features/settlements/data/settlement_repository_impl.dart';
 import 'package:tripsplit/features/settlements/domain/settlement_repository.dart';
@@ -42,6 +44,23 @@ void main() {
         participantMemberIds: [payerId, otherId],
       );
       return (tripId, payerId, otherId);
+    }
+
+    // Mirrors SettlementRepositoryImpl._currentSettlementPlan so edits are
+    // verified against the same live plan the screens render.
+    Future<SettlementResult> currentPlan(int tripId) async {
+      final (expenseRows, shareRows, settlementRows, paymentRows) = await (
+        db.expenseDao.getByTrip(tripId),
+        db.expenseDao.getSharesByTrip(tripId),
+        db.settlementDao.getByTrip(tripId),
+        db.journeyDao.getPaymentsByTrip(tripId),
+      ).wait;
+      return SettlementCalculator.calculate(
+        expenses: expenseRows.map((row) => row.toDomain()).toList(),
+        shares: shareRows.map((row) => row.toDomain()).toList(),
+        settlements: settlementRows.map((row) => row.toDomain()).toList(),
+        payments: paymentRows.map((row) => row.toDomain()).toList(),
+      );
     }
 
     test(
@@ -299,5 +318,59 @@ void main() {
         throwsA(isA<ValidationException>()),
       );
     });
+
+    test(
+      '365.40 scenario: record 200, edit to 250, edit back to 365.40 → 0',
+      () async {
+        // Ana (payer) paid a 730.80 dinner; Ben owes 365.40.
+        final (tripId, payerId, otherId) = await seedDebt(amountMinor: 730_80);
+
+        // Record initial settlement of ₹200 → ₹165.40 remains.
+        await repository.recordPayment(
+          tripId: tripId,
+          fromMemberId: otherId,
+          toMemberId: payerId,
+          amountMinor: 365_40,
+          paidMinor: 200_00,
+        );
+        final id = (await db.settlementDao.getByTrip(tripId)).single.id;
+
+        // No stale or duplicated amounts: the live plan is the single source.
+        var plan = await currentPlan(tripId);
+        expect(
+          SettlementCalculator.outstandingBetween(
+            plan.suggestions,
+            fromMemberId: otherId,
+            toMemberId: payerId,
+          ),
+          165_40,
+        );
+
+        // Edit the payment to ₹250 → ₹115.40 remains.
+        await repository.setPaidAmount(settlementId: id, paidMinor: 250_00);
+        plan = await currentPlan(tripId);
+        expect(
+          SettlementCalculator.outstandingBetween(
+            plan.suggestions,
+            fromMemberId: otherId,
+            toMemberId: payerId,
+          ),
+          115_40,
+        );
+        final editedRow = (await db.settlementDao.getById(id))!;
+        expect(editedRow.amountMinor, 365_40);
+        expect(editedRow.amountPaidMinor, 250_00);
+        expect(editedRow.paidAt, isNull);
+
+        // Edit back to the full ₹365.40 → fully settled, ₹0 outstanding.
+        await repository.setPaidAmount(settlementId: id, paidMinor: 365_40);
+        plan = await currentPlan(tripId);
+        expect(plan.suggestions, isEmpty);
+        expect(plan.totalOutstanding, 0);
+        final settledRow = (await db.settlementDao.getById(id))!;
+        expect(settledRow.amountPaidMinor, settledRow.amountMinor);
+        expect(settledRow.paidAt, isNotNull);
+      },
+    );
   });
 }

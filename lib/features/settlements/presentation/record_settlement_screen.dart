@@ -239,7 +239,10 @@ class _RecordSettlementScreenState
                   const SizedBox(height: AppSpacing.xl),
                   FilledButton.icon(
                     onPressed:
-                        _saving || _fromMemberId == null || _toMemberId == null
+                        _saving ||
+                            _fromMemberId == null ||
+                            _toMemberId == null ||
+                            _outstanding <= 0
                         ? null
                         : _submit,
                     icon: _saving
@@ -250,6 +253,16 @@ class _RecordSettlementScreenState
                         : const Icon(Icons.check),
                     label: const Text('Record payment'),
                   ),
+                  if (_fromMemberId != null &&
+                      _toMemberId != null &&
+                      _outstanding <= 0) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      'Nothing is owed between these members right now.',
+                      style: Theme.of(context).textTheme.captionMuted,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ],
               ),
             );

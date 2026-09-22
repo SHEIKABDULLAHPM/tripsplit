@@ -116,9 +116,12 @@ class MemberDetailScreen extends ConsumerWidget {
                           minor: balance?.cashRemaining ?? 0,
                         ),
                         const Divider(height: 24),
+                        // Settlement-aware net, matching the netLabel prefix
+                        // above — after a payment the outstanding amount must
+                        // read 0.00 instead of the stale expense-based figure.
                         _DetailStatRow(
                           label: 'Net position',
-                          minor: (balance?.netPosition ?? 0).abs(),
+                          minor: (balance?.effectiveNetPosition ?? 0).abs(),
                           emphasize: true,
                           prefix: balance?.netLabel ?? 'Balanced',
                         ),
@@ -179,8 +182,10 @@ class MemberDetailScreen extends ConsumerWidget {
 
   StatusTone _toneFor(MemberBalance? balance) {
     if (balance == null) return StatusTone.neutral;
-    if (balance.netPosition > 0) return StatusTone.success;
-    if (balance.netPosition < 0) return StatusTone.warning;
+    // Tone must follow the same settlement-aware net as netLabel so the chip
+    // label and colour never disagree once a settlement is recorded.
+    if (balance.effectiveNetPosition > 0) return StatusTone.success;
+    if (balance.effectiveNetPosition < 0) return StatusTone.warning;
     return StatusTone.neutral;
   }
 
