@@ -40,8 +40,8 @@ GATEWAY_MODE=razorpay dart run bin/server.dart
 | `RAZORPAY_API_BASE`      | `https://api.razorpay.com`      | Override for proxies/mocks               |
 | `FUNDING_WEBHOOK_SECRET` | dev-only default (simulated)    | Legacy alias for `RAZORPAY_WEBHOOK_SECRET` |
 | `FUNDING_ADMIN_KEY`      | unset                           | Enables `reconciliation` (admin-only)    |
-| `CURRENT_TERMS_VERSION`  | `2026-09-01`                    | Version shown/accepted per order         |
-| `FUNDING_PUBLIC_BASE_URL`| `http://localhost:8080`         | Public base used for links               |
+| `CURRENT_TERMS_VERSION`  | `2026-09-21`                    | Informational — effective value lives in `lib/config/legal_copy.dart` |
+| `FUNDING_PUBLIC_BASE_URL`| –                               | Unused by the server today               |
 | `MAX_BODY_BYTES`         | `1048576` (1 MiB)               | Request body cap                         |
 
 ### Environment separation
@@ -49,6 +49,26 @@ GATEWAY_MODE=razorpay dart run bin/server.dart
 - **Development / Staging** — `FUNDING_ENV=development|staging`, `GATEWAY_MODE=razorpay`, and the Razorpay **test** key pair (`rzp_test_…`); no live credentials ever appear here.
 - **Production** — `FUNDING_ENV=production`, `GATEWAY_MODE=razorpay`, the Razorpay **live** key pair, and secrets injected through the platform (never a committed file).
 - Only the public `RAZORPAY_KEY_ID` is returned to the app (inside the order-creation response); the Key Secret and webhook secret are never exposed.
+
+## Production deployment (Render)
+
+Deploy the **server only** (never the Flutter dev toolchain in `../docker/`) as a
+Render web service from this directory (build context `server/`):
+
+1. **Image**: use the included `server/Dockerfile` (`docker build -t tripsplit-funding:prod server`). It compiles the server with `dart build cli` and the container runs `./bin/server`, binding `0.0.0.0:$PORT`.
+2. **Environment** (Render env vars, not a `.env` file):
+   - `FUNDING_ENV=production`, `GATEWAY_MODE=razorpay`
+   - `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET` — **live** key pair
+   - `RAZORPAY_WEBHOOK_SECRET` — must equal the Dashboard webhook secret
+   - `FUNDING_ADMIN_KEY` — strong random value (enables `/history`, `/reconciliation`)
+   - `PORT` — Render provides it automatically
+3. **Persistent disk**: attach a Render Disk and set `FUNDING_DB_PATH=/data/funding.sqlite3`. Render's filesystem is ephemeral — without a disk the funding ledger, payments, and webhook dedupe are wiped on every deploy/restart. Run a **single instance** (embedded SQLite, WAL mode).
+4. **Webhook**: in the Razorpay Dashboard (Settings → Webhooks) register `POST https://<render-host>/api/v1/funding/webhooks/razorpay` with the same secret and events `payment.captured`, `payment.failed`, `order.paid`, `order.cancelled`.
+5. **Health check**: Render health path `/health` (HTTP 200).
+6. **HTTPS**: always use `https://<render-host>` for the webhook URL and the app's `FUNDING_API_BASE_URL`. Production release builds forbid cleartext HTTP.
+7. **Mobile APK**: rebuild the Flutter app with `--dart-define=FUNDING_API_BASE_URL=https://<render-host>`; the app receives only the public key id from order creation — no secret is compiled in.
+
+Never run `FUNDING_ENV=test` (wildcard CORS) or `GATEWAY_MODE=simulated` (sandbox checkout, no real money) in production. The checkout-simulator route is already disabled for non-simulated modes.
 
 ## Endpoints
 

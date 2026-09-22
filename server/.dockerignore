@@ -1,0 +1,17 @@
+# Secrets and local state never enter the image build context.
+.env
+.env.*
+!.env.example
+
+# Runtime funding ledger + WAL sidecar files.
+funding.sqlite3
+funding.sqlite3-shm
+funding.sqlite3-wal
+
+# Local package/build state.
+.dart_tool/
+
+# Test sources and docs are not needed in the production image.
+test/
+README.md
+analysis_options.yaml

@@ -51,7 +51,7 @@ class LegalBundle {
   static LegalBundle defaults() => const LegalBundle(
         termsVersion: '2026-09-21',
     jurisdiction: 'India',
-    contactEmail: 'support@tripsplit.in',
+    contactEmail: 'tripsplit.me@gmail.com',
     documents: [
       LegalDocument(
         name: 'overview',
@@ -146,7 +146,7 @@ effectiveVersion: '2026-09-21',
             '2. Exception',
             'If a payment was charged twice, or was captured in error '
                 '(for example a failed checkout billed anyway), contact '
-                'support@tripsplit.in and the payment will be refunded '
+                'tripsplit.me@gmail.com and the payment will be refunded '
                 'in full within a reasonable time.',
           ),
           LegalSection(

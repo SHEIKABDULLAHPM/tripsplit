@@ -15,5 +15,15 @@ dependencies:
   logging: ^1.3.0
   sqlite3: ^3.5.2
 
+# Resolve sqlite3 through the system shared library instead of the package's
+# default precompiled download (a flaky build-time dependency on GitHub
+# releases). The production Docker image installs libsqlite3-dev and the dev
+# toolchain image (docker/Dockerfile) already ships it, so both build and
+# runtime resolve against the OS copy of SQLite.
+hooks:
+  user_defines:
+    sqlite3:
+      source: system
+
 dev_dependencies:
   test: ^1.31.0
