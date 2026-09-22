@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../core/preferences/onboarding_preferences.dart';
 import '../router.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
-import '../widgets/brand_lockup.dart';
 
 /// Branded splash screen shown at `/splash`.
 ///
-/// Presents the official TripSplit logo (symbol + wordmark + tagline) on the
-/// asset's white canvas, holds long enough to read the onboarding flag, then
-/// routes first-time users through Welcome → Onboarding and returning users
-/// straight to Home. Navigation uses `go`, replacing Splash in the stack so
-/// back never returns here.
+/// Presents the official TripSplit logo on the asset's white canvas, holds
+/// long enough to read the onboarding flag, then routes first-time users
+/// through Welcome → Onboarding and returning users straight to Home.
+/// Navigation uses `go`, replacing Splash in the stack so back never returns
+/// here.
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -23,6 +21,10 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  /// The official TripSplit logo mark (ships on a white canvas, trimmed to
+  /// the artwork so it fills the splash frame).
+  static const String _tripSplitLogo = 'assets/logo/logo_mark.png';
+
   bool _started = false;
 
   @override
@@ -61,10 +63,10 @@ class _SplashScreenState extends State<SplashScreen> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               child: LayoutBuilder(
-                builder: (context, constraints) => SvgPicture.asset(
-                  tripSplitLogoSvg,
-                  // Cap width so the square logo never overruns tall or
-                  // narrow screens; height follows the intrinsic ratio.
+                builder: (context, constraints) => Image.asset(
+                  _tripSplitLogo,
+                  // Cap width so the square logo never overruns tall or narrow
+                  // screens; height follows the intrinsic aspect ratio.
                   width: (constraints.maxWidth * 0.84).clamp(0, 460),
                 ),
               ),
