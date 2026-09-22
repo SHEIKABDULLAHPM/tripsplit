@@ -308,7 +308,10 @@ never requires it.
 The server reads `server/.env` (see `server/.env.example`) for
 `GATEWAY_MODE`, `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`,
 `RAZORPAY_WEBHOOK_SECRET`, `FUNDING_ENV`, and the ledger path. The app needs
-only `FUNDING_API_BASE_URL` at build time:
+only `FUNDING_API_BASE_URL` at build time, and it already defaults to the
+deployed production backend (`https://tripsplit-funding.onrender.com`), so any
+build talks to the funding service out of the box. Override it to point at a
+local sandbox or a different host:
 
 ```bash
 flutter run --dart-define=FUNDING_API_BASE_URL=https://funding.example.com

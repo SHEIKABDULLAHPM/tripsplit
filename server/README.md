@@ -66,7 +66,10 @@ Render web service from this directory (build context `server/`):
 4. **Webhook**: in the Razorpay Dashboard (Settings → Webhooks) register `POST https://<render-host>/api/v1/funding/webhooks/razorpay` with the same secret and events `payment.captured`, `payment.failed`, `order.paid`, `order.cancelled`.
 5. **Health check**: Render health path `/health` (HTTP 200).
 6. **HTTPS**: always use `https://<render-host>` for the webhook URL and the app's `FUNDING_API_BASE_URL`. Production release builds forbid cleartext HTTP.
-7. **Mobile APK**: rebuild the Flutter app with `--dart-define=FUNDING_API_BASE_URL=https://<render-host>`; the app receives only the public key id from order creation — no secret is compiled in.
+7. **Mobile APK**: build the Flutter app (`flutter build apk`) — it already
+   defaults to the deployed Render host, or pass an override with
+   `--dart-define=FUNDING_API_BASE_URL=https://<render-host>`; the app receives
+   only the public key id from order creation — no secret is compiled in.
 
 Never run `FUNDING_ENV=test` (wildcard CORS) or `GATEWAY_MODE=simulated` (sandbox checkout, no real money) in production. The checkout-simulator route is already disabled for non-simulated modes.
 

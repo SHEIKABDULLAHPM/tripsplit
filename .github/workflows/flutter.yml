@@ -48,7 +48,7 @@ jobs:
         run: flutter test --coverage
 
       - name: Build APK
-        run: flutter build apk --debug
+        run: flutter build apk --debug --dart-define=FUNDING_API_BASE_URL=https://tripsplit-funding.onrender.com
 
       - name: Upload test coverage
         uses: actions/upload-artifact@v4
