@@ -30,7 +30,6 @@ dependencies:
 
   # Local preferences
   shared_preferences: ^2.5.5
-  flutter_svg: ^2.3.0
 
   # Hosted payment checkout (Razorpay). The plugin only ever sees the public
   # key id, the order id, the amount, and the currency; it never learns the

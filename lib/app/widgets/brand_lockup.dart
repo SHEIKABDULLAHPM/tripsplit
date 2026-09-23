@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../theme/app_radius.dart';
 import '../theme/app_spacing.dart';
 
-/// Official TripSplit logo artwork.
-const String tripSplitLogoSvg = 'assets/logo/tripsplitlogo.svg';
-const String tripSplitSymbolSvg = 'assets/logo/tripsplitlogo.svg';
+/// The official TripSplit mark, shared by every surface that shows the brand
+/// (splash, app bar, onboarding, welcome, help popup).
+const String tripSplitLogoMark = 'assets/logo/logo_mark.png';
 
 /// Wordmark colors from the official logotype ("Trip" navy, "Split" blue).
 const Color _tripColor = Color(0xFF142B4A);
 const Color _splitColor = Color(0xFF1678EF);
 
-/// The TripSplit symbol rendered from the official SVG mark.
+/// The TripSplit symbol rendered from the official mark artwork.
 ///
 /// Sized to the given box with [BoxFit.contain] so it never distorts.
 class TripSplitMark extends StatelessWidget {
@@ -24,12 +23,12 @@ class TripSplitMark extends StatelessWidget {
   Widget build(BuildContext context) => Semantics(
     image: true,
     label: 'TripSplit',
-    child: SvgPicture.asset(
-      tripSplitSymbolSvg,
+    child: Image.asset(
+      tripSplitLogoMark,
       width: size,
       height: size,
       fit: BoxFit.contain,
-      placeholderBuilder: (context) => const SizedBox.shrink(),
+      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
     ),
   );
 }
